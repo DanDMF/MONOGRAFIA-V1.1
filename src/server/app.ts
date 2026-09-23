@@ -14,6 +14,7 @@ import { registerAuthRoutes } from "./http/routes-auth.js";
 import { registerProjectRoutes } from "./http/routes-project.js";
 import { registerContentRoutes } from "./http/routes-content.js";
 import { registerDataRoutes } from "./http/routes-data.js";
+import { registerWritingRoutes } from "./http/routes-writing.js";
 import { ENTITIES } from "../shared/entities.js";
 import { styleInfo } from "./modules/bibliography/csl.js";
 import { FORMULA_VERSION } from "./modules/analysis/calc.js";
@@ -68,6 +69,7 @@ export async function buildApp(opts: { config: AppConfig; pool: pg.Pool; storage
   registerProjectRoutes(app, ctx);
   registerContentRoutes(app, ctx);
   registerDataRoutes(app, ctx);
+  registerWritingRoutes(app, ctx);
 
   // Em produção, servir o cliente compilado com fallback SPA.
   const clientDir = path.resolve("dist/client");

@@ -3,15 +3,18 @@ import { get } from "../../api";
 import { useProjectApi, useSession } from "../../session";
 import { Badge, ErrorAlert, Loading, PageHead, useAsync } from "../../components/ui";
 import { SECTION_STATUS } from "../../../shared/templates";
-import { fmtDateTime, fmtNumber } from "../../format";
+import { fmtDate, fmtDateTime, fmtNumber } from "../../format";
+import { CARD_STAGE_HINT, CARD_STAGE_LABEL, CARD_STAGES } from "../../../shared/cards";
+import { NewIdeaForm } from "./Cards";
 
 export function Dashboard() {
   const base = useProjectApi();
-  const { project } = useSession();
+  const { project, canWrite } = useSession();
   const d = useAsync(() => get(`${base}/dashboard`), [base]);
   if (d.loading && !d.data) return <Loading />;
   if (d.error) return <ErrorAlert error={d.error} />;
-  const { counts, byStatus, words, inProgress, lastEdited, actions } = d.data;
+  const { counts, byStatus, words, inProgress, lastEdited, actions, writing } = d.data;
+  const next = writing?.card;
   return (
     <>
       <PageHead title="Painel" intro={`${project?.name}${project?.academic_title ? " — " + project.academic_title : ""}`}>
@@ -21,7 +24,33 @@ export function Dashboard() {
           </Link>
         )}
       </PageHead>
-      <div className="grid grid-3">
+      <section className="card next-paragraph" aria-labelledby="proximo">
+        <h2 id="proximo">Próximo parágrafo</h2>
+        {next ? (
+          <>
+            <p>
+              <Link to={`/app/escrita/cartoes/${next.id}`}>
+                <strong>{next.idea}</strong>
+              </Link>{" "}
+              <Badge status="earth" label={CARD_STAGE_LABEL[next.stage as keyof typeof CARD_STAGE_LABEL]} />
+            </p>
+            <p className="muted">
+              {next.next_action
+                ? `→ ${next.next_action}${next.next_action_date ? ` (até ${fmtDate(next.next_action_date)})` : ""}`
+                : CARD_STAGE_HINT[next.stage as keyof typeof CARD_STAGE_HINT]}
+              {next.section_title ? ` · ${next.section_title}` : ""}
+            </p>
+          </>
+        ) : (
+          <p className="muted">Nenhum cartão em curso. Escreva uma ideia para começar o parágrafo de hoje.</p>
+        )}
+        {canWrite && <NewIdeaForm compact />}
+        <p className="muted small">
+          <Link to="/app/escrita/cartoes">Todos os cartões</Link>:{" "}
+          {CARD_STAGES.map((s) => `${CARD_STAGE_LABEL[s]} ${writing?.byStage?.[s] ?? 0}`).join(" · ")}
+        </p>
+      </section>
+      <div className="grid grid-3" style={{ marginTop: "1rem" }}>
         <div className="card">
           <div className="stat">{fmtNumber(words, 0)}</div>
           <div className="stat-label">palavras escritas (contagem não mede qualidade)</div>

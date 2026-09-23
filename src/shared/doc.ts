@@ -139,7 +139,11 @@ export function sanitizeDoc(input: unknown): DocNode {
     }
     if (!BLOCK_TYPES.has(t) && !INLINE_TYPES.has(t) && t !== "doc") throw new DocValidationError(`Tipo de nó não suportado: ${t}`);
     const out: DocNode = { type: t };
-    if (t === "heading") {
+    if (t === "paragraph") {
+      // Ligação ao cartão "Próximo parágrafo" que originou o parágrafo (não é apresentada no texto publicado).
+      const cardId = node.attrs?.cardId;
+      if (typeof cardId === "string" && UUID_RE.test(cardId)) out.attrs = { cardId };
+    } else if (t === "heading") {
       const level = Number(node.attrs?.level);
       out.attrs = { level: level >= 2 && level <= 5 ? level : 2 };
     } else if (t === "orderedList") {

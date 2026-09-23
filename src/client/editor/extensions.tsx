@@ -1,7 +1,7 @@
 // Nós estruturados do editor: citações ligadas à biblioteca (inline e em bloco) e referências cruzadas por ID.
 // O texto da citação nunca é guardado no documento: é renderizado pelo motor APA a partir da biblioteca.
 import { createContext, useContext } from "react";
-import { Node } from "@tiptap/core";
+import { Extension, Node } from "@tiptap/core";
 import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from "@tiptap/react";
 
 export interface RenderedCitation {
@@ -151,4 +151,26 @@ export const Xref = Node.create({
   ],
   renderHTML: ({ node }) => ["span", { "data-vrban-xref": JSON.stringify(node.attrs) }, "[ref]"],
   addNodeView: () => ReactNodeViewRenderer(XrefView),
+});
+
+/**
+ * Ligação parágrafo ↔ cartão "Próximo parágrafo". O atributo é preservado ao gravar e não passa para
+ * o parágrafo seguinte quando se prime Enter (o texto novo não veio do cartão).
+ */
+export const CardLink = Extension.create({
+  name: "cardLink",
+  addGlobalAttributes: () => [
+    {
+      types: ["paragraph"],
+      attributes: {
+        cardId: {
+          default: null,
+          keepOnSplit: false,
+          parseHTML: (el) => el.getAttribute("data-card-id"),
+          renderHTML: (attrs) =>
+            attrs.cardId ? { "data-card-id": attrs.cardId, class: "from-card", title: "Parágrafo integrado a partir de um cartão “Próximo parágrafo”" } : {},
+        },
+      },
+    },
+  ],
 });

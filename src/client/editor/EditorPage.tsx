@@ -5,7 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { ApiError, get, patch, post, put } from "../api";
 import { useProjectApi, useSession } from "../session";
 import { Badge, Dialog, ErrorAlert, Loading, PageHead, useAsync } from "../components/ui";
-import { Citation, CitationBlock, EditorContext, Xref, type RenderedCitation } from "./extensions";
+import { CardLink, Citation, CitationBlock, EditorContext, Xref, type RenderedCitation } from "./extensions";
 import { CitationDialog, type RefOption } from "./CitationDialog";
 import { SECTION_STATUS } from "../../shared/templates";
 import { plainText, docWordCount, type CitationAttrs, type DocNode } from "../../shared/doc";
@@ -144,7 +144,7 @@ function EditorInner({ initial }: { initial: any }) {
 
   const editor = useEditor({
     editable: canWrite,
-    extensions: [StarterKit.configure({ heading: { levels: [2, 3, 4, 5] }, codeBlock: false }), Citation, CitationBlock, Xref],
+    extensions: [StarterKit.configure({ heading: { levels: [2, 3, 4, 5] }, codeBlock: false }), Citation, CitationBlock, Xref, CardLink],
     content: initial.sec.doc,
     onUpdate: ({ editor }) => {
       setWords(docWordCount(editor.getJSON() as DocNode));

@@ -6,6 +6,7 @@ import { conflict } from "../lib/errors.js";
 import { emptyToNull, parse } from "../lib/validate.js";
 import { applyTemplate, listSections } from "../modules/content/sections.js";
 import { runAcademicAudit } from "../modules/audit/academic.js";
+import { nextCard } from "../modules/writing/cards.js";
 import { requireProject, requireUser, type AppCtx } from "./context.js";
 
 const optText = (max = 1000) => z.preprocess(emptyToNull, z.string().trim().max(max).nullable()).optional();
@@ -129,7 +130,8 @@ export function registerProjectRoutes(app: FastifyInstance, ctx: AppCtx) {
       actions.unshift({ kind: "audit", text: `${auditRes.summary.structural} erro(s) estrutural(is) na auditoria académica.`, link: "/app/bibliografia/auditoria" });
     else if (auditRes.summary.incomplete)
       actions.push({ kind: "audit", text: `${auditRes.summary.incomplete} informação(ões) incompleta(s) na auditoria académica.`, link: "/app/bibliografia/auditoria" });
-    return { counts, byStatus, words, audit: auditRes.summary, inProgress: inProgress.map((s) => ({ id: s.id, title: s.title, status: s.status, number: s.number })), lastEdited, actions };
+    const writing = await nextCard(ctx.pool, projectId);
+    return { counts, byStatus, words, audit: auditRes.summary, writing, inProgress: inProgress.map((s) => ({ id: s.id, title: s.title, status: s.status, number: s.number })), lastEdited, actions };
   });
 
   app.get("/api/projects/:projectId/audit", async (req) => {

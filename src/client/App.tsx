@@ -16,6 +16,7 @@ import { SettingsPage } from "./pages/app/Settings";
 import { CoveragePage } from "./pages/app/Coverage";
 import { ApaGuidePage } from "./pages/app/ApaGuide";
 import { AuditPage } from "./pages/app/Audit";
+import { CardDetailPage, CardsPage } from "./pages/app/Cards";
 import { PublicHome, PublicLayout, PublicMonograph, PublicReferences, PublicResults, PublicDocuments } from "./pages/public/Public";
 import { ReadingPrefs } from "./pages/public/ReadingPrefs";
 
@@ -45,6 +46,8 @@ export function App() {
         <Route path="/app" element={<PrivateLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="escrita/estrutura" element={<StructurePage />} />
+          <Route path="escrita/cartoes" element={<CardsPage />} />
+          <Route path="escrita/cartoes/:id" element={<CardDetailPage />} />
           <Route path="escrita/editor/:sectionId" element={<Suspense fallback={<Loading what="a abrir o editor" />}><EditorPage /></Suspense>} />
           <Route path="bibliografia" element={<LibraryPage />} />
           <Route path="bibliografia/importar" element={<ImportPage />} />
@@ -99,9 +102,10 @@ const NAV: { group: string; items: { to: string; label: string }[]; pending?: st
     group: "Escrita",
     items: [
       { to: "/app", label: "Painel" },
+      { to: "/app/escrita/cartoes", label: "Próximo parágrafo" },
       { to: "/app/escrita/estrutura", label: "Estrutura e editor" },
     ],
-    pending: ["Próximo parágrafo", "Notas e conceitos", "Revisão"],
+    pending: ["Notas e conceitos", "Revisão"],
   },
   {
     group: "Bibliografia",
@@ -186,6 +190,9 @@ function PrivateLayout() {
         </button>
         <strong>{project.name}</strong>
         <span className="spacer" />
+        <Link className="btn btn-small" to="/app/escrita/cartoes">
+          + Ideia
+        </Link>
         <Link className="btn btn-small" to="/app/dados/colheitas?novo=1">
           + Colheita
         </Link>

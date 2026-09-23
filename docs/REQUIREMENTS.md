@@ -78,7 +78,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-006-001 | Navegação lateral em 5 grupos com URLs estáveis | F0 | Verificado | `App.tsx`; `E2E` |
 | VRB-006-002 | Itens pendentes identificados como tal na navegação | F0 | Implementado | “· pendente” em `App.tsx` |
 | VRB-006-003 | Telemóvel: menu recolhível e ações rápidas (colheita, despesa, registo) | F0 | Verificado | `E2E` (390 px) |
-| VRB-006-004 | Ação rápida “nova ideia” | F1 | Pendente | Depende de VRB-012 |
+| VRB-006-004 | Ação rápida “nova ideia” | F1 | Implementado | Painel (“Próximo parágrafo”) e barra superior “+ Ideia”; `scripts/e2e-browser.mjs` |
 | VRB-006-005 | Preservar filtros na navegação (URL) | F5 | Parcial | Filtros em estado local; persistência na URL pendente |
 | VRB-007-001 | Paleta marfim/verde/terra; largura de leitura | F6 | Verificado | `styles.css`; capturas `E2E` |
 | VRB-007-002 | Modo claro/escuro, tamanho de letra, modo de leitura, reduzir movimento | F6 | Implementado | `ReadingPrefs.tsx`, `prefs.ts` |
@@ -121,7 +121,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 
 | ID | Requisito | Fase | Estado | Evidência |
 |---|---|---|---|---|
-| VRB-012-001 | Cartão “Próximo parágrafo” e fluxo ideia→integrado | F1 | Pendente | — |
+| VRB-012-001 | Cartão “Próximo parágrafo” e fluxo ideia→integrado | F1 | Verificado | Migração 0007; `tests/paragraph-cards.test.ts` (13); e2e browser (cartão → parágrafo integrado com citação e localização; telemóvel 390 px) |
 | VRB-012-002 | Excerto literal, paráfrase e comentário separados | F2 | Implementado | `excerpt.kind`; página Excertos; detalhe da fonte |
 | VRB-012-003 | Ficha de leitura completa | F2 | Parcial | Tabela `reading_note`; interface pendente |
 | VRB-012-004 | Matriz da literatura com diferenças de base explícitas | F2 | Pendente | — |

@@ -236,3 +236,34 @@ dialog .dlg-foot { display: flex; gap: 0.5rem; justify-content: flex-end; paddin
 .diff ins { background: var(--green-soft); text-decoration: none; }
 .diff del { background: var(--danger-soft); }
 .chart-bar { fill: var(--green-2); }
+
+/* Próximo parágrafo */
+.small { font-size: 0.85rem; }
+.text-warn { color: var(--warn); }
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem; align-items: start; }
+.board-col { background: var(--surface-2); border-radius: var(--radius); padding: 0.5rem; }
+.board-col > summary { cursor: pointer; padding: 0.25rem 0.35rem; }
+.board-col .card-link { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.5rem; text-decoration: none; color: inherit; padding: 0.7rem 0.8rem; }
+.board-col .card-link:hover, .board-col .card-link:focus-visible { border-color: var(--earth); }
+.card-idea { font-weight: 600; }
+.stepper { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0.5rem 0 0.75rem; }
+.stepper .step { font: inherit; font-size: 0.85rem; border: 1px solid var(--border); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 0.25rem 0.7rem; cursor: pointer; }
+.stepper .step.done { background: var(--green-soft); color: var(--green); border-color: transparent; }
+.stepper .step.current { background: var(--earth); color: var(--surface); border-color: var(--earth); font-weight: 600; opacity: 1; }
+.stepper .step:disabled { cursor: default; }
+.stepper .step:disabled:not(.current) { opacity: 0.75; }
+.source-row { border-bottom: 1px solid var(--border); padding: 0.5rem 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.source-title { font-weight: 600; }
+.pick-list { list-style: none; padding: 0; margin: 0.25rem 0; border: 1px solid var(--border); border-radius: var(--radius); }
+.pick-list li + li { border-top: 1px solid var(--border); }
+.pick-list .btn-link { text-align: left; width: 100%; padding: 0.45rem 0.6rem; }
+.excerpt { border-radius: var(--radius); padding: 0.55rem 0.75rem; margin: 0.4rem 0; border-left: 4px solid var(--border); background: var(--surface-2); }
+.excerpt-kind { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.2rem; }
+.excerpt-literal { border-left-color: var(--earth); }
+.excerpt-literal .excerpt-text { font-family: var(--serif, Georgia, serif); }
+.excerpt-paraphrase { border-left-color: var(--green); }
+.excerpt-comment { border-left-color: var(--warn); background: var(--warn-soft); }
+.excerpt-comment .excerpt-text { font-style: italic; }
+.integrate { border-top: 1px dashed var(--border); margin-top: 0.75rem; padding-top: 0.5rem; }
+textarea.draft { font-family: var(--serif, Georgia, serif); font-size: 1.02rem; line-height: 1.6; }
+.ProseMirror p.from-card { border-left: 3px solid var(--earth-soft); padding-left: 0.5rem; margin-left: -0.6rem; }

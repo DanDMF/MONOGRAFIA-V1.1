@@ -343,6 +343,14 @@ export async function mergeReferences(db: Queryable, projectId: string, userId: 
   const preview = await mergePreview(db, projectId, keepId, dropId);
   await q(db, "update citation_item set reference_id = $1 where reference_id = $2", [keepId, dropId]);
   await q(db, "update excerpt set reference_id = $1 where reference_id = $2", [keepId, dropId]);
+  // Cartões "Próximo parágrafo": mantém a ligação (se o cartão já tinha as duas, fica a mantida).
+  await q(
+    db,
+    `delete from paragraph_card_source d where d.reference_id = $2
+        and exists (select 1 from paragraph_card_source k where k.card_id = d.card_id and k.reference_id = $1)`,
+    [keepId, dropId],
+  );
+  await q(db, "update paragraph_card_source set reference_id = $1 where reference_id = $2", [keepId, dropId]);
   await q(
     db,
     `delete from reading_note where reference_id = $2 and exists (select 1 from reading_note where reference_id = $1)`,
