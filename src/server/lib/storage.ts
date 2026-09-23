@@ -47,3 +47,35 @@ export function safeFileName(name: string): string {
   const base = name.normalize("NFKD").replace(/[^\w.\- ]+/g, "").replace(/\s+/g, "_").slice(0, 120);
   return base || "ficheiro";
 }
+
+/** Ficheiros guardados em PostgreSQL (tabela stored_blob). Adequado a alojamentos sem disco persistente. */
+export class DbStorage implements Storage {
+  constructor(private readonly pool: { query: (sql: string, params?: unknown[]) => Promise<{ rows: any[] }> }) {}
+  private check(key: string) {
+    if (!/^[a-zA-Z0-9/_.-]+$/.test(key) || key.includes("..")) throw new Error("Chave de armazenamento inválida.");
+  }
+  async put(key: string, data: Buffer) {
+    this.check(key);
+    await this.pool.query(
+      "insert into stored_blob (key, data) values ($1, $2) on conflict (key) do update set data = excluded.data, created_at = now()",
+      [key, data],
+    );
+  }
+  async get(key: string) {
+    this.check(key);
+    const r = await this.pool.query("select data from stored_blob where key = $1", [key]);
+    if (!r.rows[0]) throw new Error("Ficheiro inexistente no armazenamento.");
+    return r.rows[0].data as Buffer;
+  }
+  async exists(key: string) {
+    this.check(key);
+    return (await this.pool.query("select 1 from stored_blob where key = $1", [key])).rows.length > 0;
+  }
+  async delete(key: string) {
+    this.check(key);
+    await this.pool.query("delete from stored_blob where key = $1", [key]);
+  }
+  describe() {
+    return "postgres:stored_blob";
+  }
+}

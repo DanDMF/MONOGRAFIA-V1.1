@@ -70,6 +70,12 @@ Formato: pergunta → decisão (provisória ou firme) → fundamento → alterna
 - **Desempenho**: o painel executa a auditoria completa em cada carregamento (inclui renderização CSL do projeto). Adequado à escala de uma monografia; se ficar lento, guardar o resultado em cache invalidada por gravação.
 - A publicação **não é bloqueada** por avisos (decisão do autor); a página de publicação mostra o resumo antes de publicar.
 
+## D-017 · Alojamento sem computador (Render) · Provisória (2026-09-24)
+- O autor não tem computador: a aplicação tem de arrancar sem terminal. Acrescentado: `MIGRATE_ON_START` (migrações no arranque), `RUN_WORKER_IN_PROCESS` (fila no processo web: um único serviço), `STORAGE_DRIVER=db` (ficheiros em `stored_blob`, migração 0006, porque discos gratuitos são efémeros), provisionamento inicial por `VRBAN_BOOTSTRAP_*` **apenas quando a base não tem contas** (palavra-passe do ambiente, mínimo 12 caracteres; ignorado depois), `RENDER_EXTERNAL_URL` como endereço público por omissão.
+- `Dockerfile` (Node 22 bookworm-slim + `libreoffice-writer-nogui` + `python3-uno` + `fonts-liberation`, ~1 GB) e `render.yaml` (web Docker + PostgreSQL, plano gratuito). Verificado localmente com Docker: 6 migrações e conta criadas numa base vazia, `scripts/e2e-browser.mjs` completo contra o contentor, PDF gerado no contentor, ficheiros e conta preservados após reinício, pico de memória ~340 MB durante a conversão PDF.
+- O teste local exigiu um Dockerfile auxiliar (não versionado) com a CA/proxy do ambiente de desenvolvimento, o espelho `public.ecr.aws` (limite de pedidos do Docker Hub) e fontes apt em HTTPS; o `Dockerfile` do repositório não depende disso.
+- **Alternativas:** Railway/Fly.io (semelhantes; exigem CLI ou cartão em alguns casos), VPS (exige terminal). Render escolhido por permitir tudo pelo navegador do telemóvel. **Riscos:** limites do plano gratuito (adormecimento, prazo da base, memória); preços e limites a confirmar pelo autor.
+
 ## Lacunas abertas
 
 | ID | Pergunta | Impacto | Decisão provisória |

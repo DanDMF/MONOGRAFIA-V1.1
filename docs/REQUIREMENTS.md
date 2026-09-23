@@ -23,9 +23,9 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-C-002 | Cálculos e autorizações centralizados no servidor; sem duplicar regras no cliente/Excel | F0 | Verificado | `analysis/calc.ts`; Excel usa resultados do servidor + fórmulas de reprodução (`XLSX`) |
 | VRB-C-003 | Autenticação com bibliotecas consolidadas, sem palavra-passe predefinida; provisionamento explícito | F0 | Verificado | argon2 (`@node-rs/argon2`), `provision-author.ts`, `T-ACAD` |
 | VRB-C-004 | Primeira conta registada não se torna dona; sem auto-registo | F0 | Implementado | Não existe rota de registo; `project_member` explícito |
-| VRB-C-005 | Armazenamento por interface (local persistente; objetos em alojamento) | F0 | Parcial | `LocalStorage` implementado; implementação S3-compatível pendente |
+| VRB-C-005 | Armazenamento por interface (local persistente; alternativa para alojamento) | F0 | Verificado | `LocalStorage` e `DbStorage` (ficheiros na base, para discos efémeros) (`tests/deploy.test.ts`, contentor reiniciado sem perda); S3-compatível opcional pendente |
 | VRB-C-006 | Fila persistente com bloqueio, retentativas, idempotência e recuperação | F0 | Verificado | `jobs/queue.ts` (SKIP LOCKED, backoff, órfãs >15 min), `T-ANA` |
-| VRB-C-007 | Documentar aplicação, worker, base e ficheiros; Docker opcional | F0 | Parcial | README; Docker Compose não fornecido (ver DECISIONS D-011) |
+| VRB-C-007 | Documentar aplicação, worker, base e ficheiros; Docker opcional | F0 | Verificado | README, `docs/DEPLOY.md`, `Dockerfile` e `render.yaml` verificados em contentor (D-017) |
 | VRB-D-001 | CLAUDE.md conciso + docs/* de continuidade | F0 | Verificado | Ficheiros presentes |
 | VRB-D-002 | Requisitos granulares com IDs, fase, estado e evidência | F0 | Verificado | Este ficheiro |
 | VRB-E-001 | Percurso académico completo demonstrado | F1 | Verificado | `T-ACAD`, `E2E` |
@@ -34,7 +34,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-F-002 | Migrações que preservam dados; migrador recusa alteração de migração aplicada | F0 | Implementado | `db/migrate.ts` (checksum) |
 | VRB-F-003 | Dados de demonstração opt-in, isolados, identificados | F0 | Parcial | Coluna `project.is_demo` + faixa na interface; gerador de dados demo pendente |
 | VRB-G-001 | Scripts de tipos, testes, build, migrações e arranque verificados | F0 | Verificado | `package.json`; lint ESLint pendente (D-012) |
-| VRB-G-002 | Testes de cálculo, APA, autorização, snapshots, importação, exportação, idempotência | F0 | Verificado | 90 testes (ver PROGRESS.md) |
+| VRB-G-002 | Testes de cálculo, APA, autorização, snapshots, importação, exportação, idempotência | F0 | Verificado | 94 testes (ver PROGRESS.md) |
 | VRB-G-003 | Verificação em browser dos dois percursos, erros de gravação e telemóvel | F7 | Verificado | `E2E` (percursos, telemóvel 390 px, teclado); erro de gravação coberto só na API |
 | VRB-G-004 | XLSX relido com ferramenta independente | F5 | Verificado | `XLSX` |
 | VRB-G-005 | DOCX/PDF renderizados antes de declarar prontos | F7 | Verificado | `T-DOC`; páginas do PDF renderizadas com `pdftoppm` e inspecionadas (título, índice, corpo, referências) |

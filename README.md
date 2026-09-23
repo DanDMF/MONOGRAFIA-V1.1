@@ -63,7 +63,7 @@ Em `NODE_ENV=production` os cookies passam a `Secure` (usar HTTPS atrás de um p
 | Comando | O que verifica |
 |---|---|
 | `npm run typecheck` | TypeScript estrito (servidor e cliente) |
-| `npm test` | 90 testes: APA 7, cálculos, documento, percursos académico e analítico e exportação DOCX/PDF via API com PostgreSQL real (`TEST_DATABASE_URL`, **a base de testes é apagada e recriada**) |
+| `npm test` | 94 testes: APA 7, cálculos, documento, percursos académico e analítico e exportação DOCX/PDF via API com PostgreSQL real (`TEST_DATABASE_URL`, **a base de testes é apagada e recriada**) |
 | `npm run check` | typecheck + testes |
 | `npm run verify:xlsx -- ficheiro.xlsx` | Releitura independente (openpyxl) e recálculo das fórmulas no LibreOffice sem cache |
 | `CHROMIUM_PATH=… BASE=http://localhost:3000 EMAIL=… PASSWORD=… npm run e2e` | Percursos completos num browser real, telemóvel e teclado (cria dados de verificação no projeto indicado: usar uma base de desenvolvimento) |
@@ -101,6 +101,8 @@ tar xzf vrban-ficheiros-AAAA-MM-DD.tgz -C "$(dirname "$STORAGE_DIR")"
 Este procedimento ainda não foi ensaiado com relatório de integridade (requisito VRB-044-004 pendente). Um download de exportação não é um backup.
 
 ## Alojamento
+
+**Guia passo a passo só com o telemóvel (Render): [`docs/DEPLOY.md`](docs/DEPLOY.md).** A imagem `Dockerfile` e o `render.yaml` foram verificados localmente: contentor de produção contra uma base vazia, migrações e conta criadas no arranque, verificação completa em browser, PDF gerado, ficheiros preservados após reinício.
 
 Não há dependência de plataforma. Necessário: Node 22, PostgreSQL, um processo web e um worker, e um **volume persistente** para `STORAGE_DIR` (discos efémeros perdem ficheiros; alternativa S3-compatível pendente). Nada foi publicado na internet nesta fase.
 

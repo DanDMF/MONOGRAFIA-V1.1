@@ -21,7 +21,8 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     databaseUrl: overrides.databaseUrl ?? required("DATABASE_URL"),
     port: overrides.port ?? Number(process.env.PORT ?? 3000),
     host: overrides.host ?? process.env.HOST ?? "127.0.0.1",
-    publicBaseUrl: overrides.publicBaseUrl ?? process.env.PUBLIC_BASE_URL ?? "http://localhost:5173",
+    // No Render, RENDER_EXTERNAL_URL é definido automaticamente com o endereço público do serviço.
+    publicBaseUrl: overrides.publicBaseUrl ?? process.env.PUBLIC_BASE_URL ?? process.env.RENDER_EXTERNAL_URL ?? "http://localhost:5173",
     storageDir: path.resolve(overrides.storageDir ?? process.env.STORAGE_DIR ?? "./storage"),
     production: overrides.production ?? process.env.NODE_ENV === "production",
     sessionTtlHours: overrides.sessionTtlHours ?? Number(process.env.SESSION_TTL_HOURS ?? 336),

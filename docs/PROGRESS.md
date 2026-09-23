@@ -15,6 +15,7 @@
 - **Acesso:** login do autor provisionado; papel revisor só de leitura; CSRF; sessões seguras.
 - **Percurso académico (verificado):** biblioteca (criar/editar/importar/duplicados/fusão) → estrutura (modelo “Monografia empírica”, reordenar, renomear, subsecções, arquivar) → editor TipTap com autosave, conflitos, cópia local de emergência, versões/diff/restauro, citações APA (6 modalidades, localizadores, pré-visualização), referências cruzadas por ID → bibliografia automática → publicação por snapshot → site público (início, monografia com índice, referências, resultados, versões, “Como citar”, preferências de leitura).
 - **Guia APA e auditoria académica (verificado, sessão 2):** 15 regras com origem/versão/data e exemplos didáticos gerados pelo motor; 17 verificações classificadas por gravidade, com exceções justificadas e revogáveis; aviso antes de publicar e no painel.
+- **Alojamento (preparado e verificado localmente, sessão 2):** `Dockerfile` + `render.yaml` + arranque sem terminal; guia só com telemóvel em `docs/DEPLOY.md`. **Ainda não publicado online**: depende de o autor criar a conta no Render.
 - **Documentos (verificado):** DOCX/PDF (perfil APA de estudante) a partir do rascunho ou de uma versão publicada; exportação BibTeX/RIS/CSL-JSON.
 - **Percurso analítico (verificado):** protocolo, variáveis, locais, estruturas, culturas, ciclos, registos de campo, colheitas, consumos, trabalho, despesas, repartições, ativos, vendas, câmbio → indicadores com estados explicados e rastreio de entradas → exportação XLSX pela fila (e CSV protegido).
 - **Transversal:** histórico com antes/depois, “Onde é utilizado” (impacto), painel com próximas ações e “Continuar de onde fiquei”.
@@ -24,7 +25,8 @@
 | Verificação | Resultado |
 |---|---|
 | `npm run typecheck` | sem erros |
-| `npm test` | **90/90** (7 ficheiros: apa 23, calc 17, doc 7, académico 20, analítico 11, documento DOCX/PDF 4, auditoria/guia 8) |
+| `npm test` | **94/94** (8 ficheiros: apa 23, calc 17, doc 7, académico 20, analítico 11, documento DOCX/PDF 4, auditoria/guia 8, alojamento 4) |
+| Contentor de produção (sessão 2) | `docker build` + arranque numa base vazia (migrações e conta automáticas), verificação completa em browser contra o contentor, PDF no contentor, ficheiros e conta preservados após reinício, pico ~340 MB |
 | Guia APA e auditoria no browser (sessão 2) | Chromium: guia com exemplos, auditoria, justificar e revogar exceção, telemóvel sem deslocamento horizontal, sem erros na consola |
 | `npm run build` | sem erros (editor num bloco separado de 426 kB) |
 | `scripts/verify_xlsx.py` sobre o XLSX dos testes e sobre o XLSX descarregado no browser | OK; o LibreOffice recalculou as fórmulas dos indicadores **sem cache** e coincidem com o sistema |
@@ -43,6 +45,7 @@ Capturas da verificação em browser (não versionadas): `tmp/shots/`.
 
 ## Próxima tarefa executável
 
+0. **Autor:** seguir `docs/DEPLOY.md` no telemóvel para pôr o VRBAN online; enviar os logs se o build falhar.
 1. **Próximo parágrafo, notas/conceitos e ficha de leitura** (VRB-012-*, VRB-022-002): cartões ideia → pesquisa → leitura → notas → redação → revisão → integrado, ligados a fontes e excertos; interface da ficha de leitura; matriz da literatura.
 2. Perfil institucional (VRB-003-*) aplicado à exportação DOCX/PDF e à auditoria (campos obrigatórios configuráveis).
 3. Memória do projeto (VRB-052-*) com o contexto relatado da secção 52 inserido **apenas após confirmação do autor**.
