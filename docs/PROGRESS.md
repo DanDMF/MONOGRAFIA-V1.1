@@ -1,6 +1,6 @@
 # Progresso — estado real
 
-**Última verificação:** 2026-09-23 (sessão 1). Branch `claude/vrban-centro-investigacao-i1gip3`.
+**Última verificação:** 2026-09-24 (sessão 2). Branch `claude/vrban-centro-investigacao-i1gip3`.
 
 ## Ambiente verificado (sessão 1)
 
@@ -14,6 +14,7 @@
 
 - **Acesso:** login do autor provisionado; papel revisor só de leitura; CSRF; sessões seguras.
 - **Percurso académico (verificado):** biblioteca (criar/editar/importar/duplicados/fusão) → estrutura (modelo “Monografia empírica”, reordenar, renomear, subsecções, arquivar) → editor TipTap com autosave, conflitos, cópia local de emergência, versões/diff/restauro, citações APA (6 modalidades, localizadores, pré-visualização), referências cruzadas por ID → bibliografia automática → publicação por snapshot → site público (início, monografia com índice, referências, resultados, versões, “Como citar”, preferências de leitura).
+- **Guia APA e auditoria académica (verificado, sessão 2):** 15 regras com origem/versão/data e exemplos didáticos gerados pelo motor; 17 verificações classificadas por gravidade, com exceções justificadas e revogáveis; aviso antes de publicar e no painel.
 - **Documentos (verificado):** DOCX/PDF (perfil APA de estudante) a partir do rascunho ou de uma versão publicada; exportação BibTeX/RIS/CSL-JSON.
 - **Percurso analítico (verificado):** protocolo, variáveis, locais, estruturas, culturas, ciclos, registos de campo, colheitas, consumos, trabalho, despesas, repartições, ativos, vendas, câmbio → indicadores com estados explicados e rastreio de entradas → exportação XLSX pela fila (e CSV protegido).
 - **Transversal:** histórico com antes/depois, “Onde é utilizado” (impacto), painel com próximas ações e “Continuar de onde fiquei”.
@@ -23,7 +24,8 @@
 | Verificação | Resultado |
 |---|---|
 | `npm run typecheck` | sem erros |
-| `npm test` | **82/82** (6 ficheiros: apa 23, calc 17, doc 7, académico 20, analítico 11, documento DOCX/PDF 4) |
+| `npm test` | **90/90** (7 ficheiros: apa 23, calc 17, doc 7, académico 20, analítico 11, documento DOCX/PDF 4, auditoria/guia 8) |
+| Guia APA e auditoria no browser (sessão 2) | Chromium: guia com exemplos, auditoria, justificar e revogar exceção, telemóvel sem deslocamento horizontal, sem erros na consola |
 | `npm run build` | sem erros (editor num bloco separado de 426 kB) |
 | `scripts/verify_xlsx.py` sobre o XLSX dos testes e sobre o XLSX descarregado no browser | OK; o LibreOffice recalculou as fórmulas dos indicadores **sem cache** e coincidem com o sistema |
 | Exportação académica | DOCX com estilos reais verificado por XML; PDF (LibreOffice/UNO) com índice preenchido, texto selecionável, fontes Liberation Serif incorporadas, A4; **páginas renderizadas e inspecionadas visualmente** (título, índice, corpo com níveis APA e citação em bloco, referências com recuo francês) |
@@ -41,8 +43,7 @@ Capturas da verificação em browser (não versionadas): `tmp/shots/`.
 
 ## Próxima tarefa executável
 
-1. **Guia APA + auditoria académica agregada** (VRB-020-*): página de auditoria com citações desligadas, referências não citadas, localizadores em falta, DOI malformados, níveis de título saltados, classificados (erro estrutural / informação incompleta / revisão humana) com justificação de exceções.
-2. Próximo parágrafo, notas/conceitos e ficha de leitura na interface (VRB-012-*); matriz da literatura.
-3. Perfil institucional (VRB-003-*) aplicado à exportação DOCX/PDF (margens, capa, numeração), com diferenças face à APA visíveis.
-4. Memória do projeto (VRB-052-*) com o contexto relatado da secção 52 inserido **apenas após confirmação do autor**.
-5. Importação Excel/CSV com lotes anuláveis (VRB-039-*); tabelas/figuras e gráficos (VRB-021-002, VRB-035-*); cenários (VRB-032-*); backups ensaiados (VRB-044-004); ESLint (D-012).
+1. **Próximo parágrafo, notas/conceitos e ficha de leitura** (VRB-012-*, VRB-022-002): cartões ideia → pesquisa → leitura → notas → redação → revisão → integrado, ligados a fontes e excertos; interface da ficha de leitura; matriz da literatura.
+2. Perfil institucional (VRB-003-*) aplicado à exportação DOCX/PDF e à auditoria (campos obrigatórios configuráveis).
+3. Memória do projeto (VRB-052-*) com o contexto relatado da secção 52 inserido **apenas após confirmação do autor**.
+4. Importação Excel/CSV com lotes anuláveis (VRB-039-*); tabelas/figuras e gráficos (VRB-021-002, VRB-035-*) — ativará a verificação “tabela/figura sem menção”; cenários (VRB-032-*); backups ensaiados (VRB-044-004); ESLint (D-012).

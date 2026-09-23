@@ -6,7 +6,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 
 **Fases** (secções 48/64): F0 Fundação · F1 Monografia · F2 Bibliografia · F3 Investigação · F4 Economia · F5 Dados e Excel · F6 Análise e portfólio · F7 Entrega · TX Núcleo transversal (51–65).
 
-**Evidência**: `T-APA` = tests/apa.test.ts · `T-CALC` = tests/calc.test.ts · `T-ACAD` = tests/academic-flow.test.ts · `T-ANA` = tests/analytic-flow.test.ts · `E2E` = scripts/e2e-browser.mjs (Chromium real) · `XLSX` = scripts/verify_xlsx.py (openpyxl + recálculo LibreOffice) · `T-DOC` = tests/document-export.test.ts (DOCX/PDF; páginas do PDF renderizadas e inspecionadas visualmente).
+**Evidência**: `T-APA` = tests/apa.test.ts · `T-CALC` = tests/calc.test.ts · `T-ACAD` = tests/academic-flow.test.ts · `T-ANA` = tests/analytic-flow.test.ts · `E2E` = scripts/e2e-browser.mjs (Chromium real) · `XLSX` = scripts/verify_xlsx.py (openpyxl + recálculo LibreOffice) · `T-AUD` = tests/academic-audit.test.ts · `T-DOC` = tests/document-export.test.ts (DOCX/PDF; páginas do PDF renderizadas e inspecionadas visualmente).
 
 Última atualização: 2026-09-23.
 
@@ -34,7 +34,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-F-002 | Migrações que preservam dados; migrador recusa alteração de migração aplicada | F0 | Implementado | `db/migrate.ts` (checksum) |
 | VRB-F-003 | Dados de demonstração opt-in, isolados, identificados | F0 | Parcial | Coluna `project.is_demo` + faixa na interface; gerador de dados demo pendente |
 | VRB-G-001 | Scripts de tipos, testes, build, migrações e arranque verificados | F0 | Verificado | `package.json`; lint ESLint pendente (D-012) |
-| VRB-G-002 | Testes de cálculo, APA, autorização, snapshots, importação, exportação, idempotência | F0 | Verificado | 82 testes (ver PROGRESS.md) |
+| VRB-G-002 | Testes de cálculo, APA, autorização, snapshots, importação, exportação, idempotência | F0 | Verificado | 90 testes (ver PROGRESS.md) |
 | VRB-G-003 | Verificação em browser dos dois percursos, erros de gravação e telemóvel | F7 | Verificado | `E2E` (percursos, telemóvel 390 px, teclado); erro de gravação coberto só na API |
 | VRB-G-004 | XLSX relido com ferramenta independente | F5 | Verificado | `XLSX` |
 | VRB-G-005 | DOCX/PDF renderizados antes de declarar prontos | F7 | Verificado | `T-DOC`; páginas do PDF renderizadas com `pdftoppm` e inspecionadas (título, índice, corpo, referências) |
@@ -142,7 +142,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-014-005 | Grafia original dos títulos mantida; sem tradução silenciosa | F2 | Implementado | Títulos passados sem transformação |
 | VRB-015-001 | Assistente: várias fontes, modalidades, localizadores, pré-visualização, inserir ligada | F2 | Verificado | `CitationDialog.tsx`; `E2E` |
 | VRB-015-002 | Clicar citação abre dados, permite editar/remover e copiar | F2 | Parcial | Editar/remover/copiar citação; “todas as ocorrências” está no detalhe da fonte |
-| VRB-015-003 | Guia com exemplos fictícios que nunca entram na bibliografia | F2 | Pendente | Guia APA pendente |
+| VRB-015-003 | Guia com exemplos fictícios que nunca entram na bibliografia | F2 | Verificado | Obras fictícias em memória renderizadas pelo motor CSL; biblioteca inalterada (`T-AUD`) |
 
 ## 16–21. Regras APA
 
@@ -168,7 +168,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-018-001 | Fonte secundária: só a consultada nas referências; data original não inventada | F2 | Verificado | `T-APA` |
 | VRB-018-002 | Comunicação pessoal citada no texto e fora da lista; contactos privados | F2 | Verificado | `T-APA`; `private_contact` privado |
 | VRB-018-003 | Participantes do estudo tratados como dados anonimizados | F3 | Pendente | — |
-| VRB-018-004 | Verificador citação–referência reconhece exceções | F2 | Pendente | Auditoria académica pendente |
+| VRB-018-004 | Verificador citação–referência reconhece exceções | F2 | Verificado | Comunicações pessoais e fontes secundárias tratadas como exceções legítimas; exceções justificadas pelo autor (`T-AUD`) |
 | VRB-019-001 | Biblioteca consultada ≠ referências citadas; exportação parcial com bibliografia do escopo | F2 | Verificado | `T-ACAD` (publicação parcial); `T-APA` |
 | VRB-019-002 | Ordem alfabética, recuo francês 1,27 cm, espaçamento duplo | F2 | Verificado | CSL; CSS `.bibliography`; estilo DOCX `Reference` (hanging 720) (`T-DOC`, PDF inspecionado) |
 | VRB-019-003 | Até 20 autores todos; 21+: 19 + … + último, sem & | F2 | Verificado | `T-APA` |
@@ -176,8 +176,10 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-019-005 | DOI como https://doi.org/… | F2 | Verificado | `T-APA`, `T-ACAD` |
 | VRB-019-006 | Data de consulta interna; mostrada só quando exigida | F2 | Verificado | `T-APA` (toCsl) |
 | VRB-019-007 | Revisão de campos em falta com explicação | F2 | Implementado | Detalhe da fonte (“Informação em falta…”) |
-| VRB-020-001 | Guia APA contextual com versão, origem e data | F2 | Pendente | — |
-| VRB-020-002 | Auditoria académica (citações desligadas, duplicados, DOI malformado, títulos saltados…) | F2 | Parcial | Avisos por citação; DOI validado; auditoria agregada pendente |
+| VRB-020-001 | Guia APA contextual com versão, origem e data | F2 | Verificado | 15 regras com origem (APA / adaptação pt-PT / decisão técnica), versão, data de revisão, tópico APA Style e ligação à página oficial (`T-AUD`); URLs específicos não verificáveis deste ambiente (D-016) |
+| VRB-020-002 | Auditoria académica (citações desligadas, duplicados, autor/data ausentes, localizador, excerto longo, não citadas, ambiguidades, DOI, títulos saltados, siglas, campos institucionais) | F2 | Verificado | 17 verificações + 1 declarada não aplicável (tabelas/figuras) (`T-AUD`, verificação em browser) |
+| VRB-020-003 | Classificação erro estrutural / informação incompleta / revisão humana; exceções justificadas, auditadas e revogáveis | F2 | Verificado | `audit_exception` (migração 0005) (`T-AUD`) |
+| VRB-020-004 | Sem garantia automática de conformidade, qualidade ou ausência de plágio | F2 | Verificado | Aviso explícito na página e na API (`T-AUD`) |
 | VRB-021-001 | Cinco níveis de título APA na exportação | F7 | Verificado | Heading1 centrado negrito, Heading2 esquerda negrito, Heading3 negrito itálico, níveis 4–5 em linha (`T-DOC`) |
 | VRB-021-002 | Tabelas e figuras numeradas com notas e fonte | F6 | Pendente | — |
 | VRB-021-003 | Perfil APA de estudante (margens 2,54 cm, duplo, 1,27 cm) | F7 | Verificado | `docx.ts`; A4; paginação superior direita; sem running head (`T-DOC`) |
@@ -346,7 +348,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-056-003 | Mudança de fórmula exige nova versão | TX | Implementado | `FORMULA_VERSION` gravado em indicadores, Excel e publicações |
 | VRB-056-004 | Números digitados em texto livre não apresentados como sincronizados | TX | Implementado | Só citações/xref são objetos ligados |
 | VRB-057-001 | “Perguntar ao meu projeto” (sem IA obrigatória) | TX | Pendente | — |
-| VRB-058-001 | Painel com próximas ações concretas | TX | Parcial | Fontes por confirmar, despesas sem repartição, ausência de água, secções “precisa de fonte” |
+| VRB-058-001 | Painel com próximas ações concretas | TX | Parcial | Fontes por confirmar, despesas sem repartição, ausência de água, secções “precisa de fonte”, erros da auditoria académica (`T-AUD`) |
 | VRB-058-002 | “Continuar de onde fiquei” | TX | Implementado | Botão no painel (última secção editada) |
 | VRB-058-003 | Plano de dados em falta | TX | Parcial | Estados “dados insuficientes” com explicação; plano dedicado pendente |
 | VRB-059-001 | Pacote Power BI (tabelas normalizadas + dicionário) | TX | Parcial | XLSX normalizado com IDs e dicionário; sem .pbix (não afirmado) |

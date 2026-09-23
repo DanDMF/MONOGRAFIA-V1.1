@@ -14,6 +14,8 @@ import { PublicationPage } from "./pages/app/Publication";
 import { HistoryPage } from "./pages/app/History";
 import { SettingsPage } from "./pages/app/Settings";
 import { CoveragePage } from "./pages/app/Coverage";
+import { ApaGuidePage } from "./pages/app/ApaGuide";
+import { AuditPage } from "./pages/app/Audit";
 import { PublicHome, PublicLayout, PublicMonograph, PublicReferences, PublicResults, PublicDocuments } from "./pages/public/Public";
 import { ReadingPrefs } from "./pages/public/ReadingPrefs";
 
@@ -46,6 +48,8 @@ export function App() {
           <Route path="escrita/editor/:sectionId" element={<Suspense fallback={<Loading what="a abrir o editor" />}><EditorPage /></Suspense>} />
           <Route path="bibliografia" element={<LibraryPage />} />
           <Route path="bibliografia/importar" element={<ImportPage />} />
+          <Route path="bibliografia/guia" element={<ApaGuidePage />} />
+          <Route path="bibliografia/auditoria" element={<AuditPage />} />
           <Route path="bibliografia/:id" element={<ReferenceDetailPage />} />
           <Route path="analise/indicadores" element={<IndicatorsPage />} />
           <Route path="gestao/exportacoes" element={<ExportsPage />} />
@@ -106,8 +110,10 @@ const NAV: { group: string; items: { to: string; label: string }[]; pending?: st
       { to: "/app/bibliografia/importar", label: "Importar BibTeX/RIS" },
       { to: "/app/dados/excertos", label: "Excertos" },
       { to: "/app/dados/comunicacoes", label: "Comunicações pessoais" },
+      { to: "/app/bibliografia/guia", label: "Guia APA" },
+      { to: "/app/bibliografia/auditoria", label: "Auditoria académica" },
     ],
-    pending: ["Matriz da literatura", "Pesquisa bibliográfica", "Guia APA"],
+    pending: ["Matriz da literatura", "Pesquisa bibliográfica"],
   },
   {
     group: "Experimento",

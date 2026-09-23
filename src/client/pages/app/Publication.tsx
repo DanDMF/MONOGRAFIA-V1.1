@@ -9,6 +9,7 @@ export function PublicationPage() {
   const { canWrite, project } = useSession();
   const sections = useAsync(() => get<any[]>(`${base}/sections`), [base]);
   const pubs = useAsync(() => get<any[]>(`${base}/publications`), [base]);
+  const auditRes = useAsync(() => get<any>(`${base}/audit/academic`), [base]);
   const [selected, setSelected] = useState<string[]>([]);
   const [note, setNote] = useState("");
   const [indicators, setIndicators] = useState(false);
@@ -43,6 +44,12 @@ export function PublicationPage() {
       {canWrite && (
         <section className="card stack">
           <h2>Nova versão</h2>
+          {auditRes.data && (auditRes.data.summary.structural > 0 || auditRes.data.summary.incomplete > 0) && (
+            <div className="alert warn">
+              A auditoria académica tem {auditRes.data.summary.structural} erro(s) estrutural(is) e {auditRes.data.summary.incomplete} informação(ões) incompleta(s).{" "}
+              <a href="/app/bibliografia/auditoria">Rever antes de publicar</a> (a publicação não é bloqueada).
+            </div>
+          )}
           {withContent.length === 0 ? (
             <p className="muted">Nenhuma secção com texto. Escreva primeiro no editor.</p>
           ) : (

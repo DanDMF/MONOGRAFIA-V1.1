@@ -80,6 +80,8 @@ export interface ReferenceRow {
   url: string | null;
   read_status: string;
   verification_status: string;
+  no_date: boolean;
+  accessed_date: string | null;
   [k: string]: unknown;
 }
 export interface ContributorRow {

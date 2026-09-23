@@ -63,6 +63,13 @@ Formato: pergunta → decisão (provisória ou firme) → fundamento → alterna
 - Fonte Times New Roman 12 pt (APA permite outras fontes legíveis; o perfil institucional poderá alterar); A4 por omissão (contexto Angola/Portugal).
 - A publicação passa a guardar o documento estruturado (`doc`) e o mapa de citações no snapshot, para exportar exatamente a versão publicada; estes campos não são servidos nas rotas públicas.
 
+## D-016 · Guia APA e auditoria académica · Firme (2026-09-24)
+- **Exemplos do guia**: obras fictícias definidas em memória (`apa-guide.ts`) e renderizadas pelo mesmo motor CSL do projeto, isoladamente por regra. O guia não pode divergir do que o sistema produz e os exemplos nunca são gravados.
+- **Ligações oficiais**: o site APA Style responde 200 a qualquer caminho (inclusive inexistente) e está protegido por um desafio anti-bot (Incapsula); o `curl`, o WebFetch e o Chromium (CA do proxy) não conseguiram ler o conteúdo. Para não apresentar URLs não verificados, cada regra indica o **caminho do tópico** no APA Style e a página liga ao índice oficial (`/style-grammar-guidelines`). O autor pode acrescentar ligações específicas depois de as confirmar.
+- **Auditoria**: calculada a pedido (sem cache), com chaves estáveis `verificação:alvo`; as justificações ficam em `audit_exception` (migração 0005), auditadas e revogáveis; só é possível justificar avisos existentes. Siglas: heurística (2–6 maiúsculas; definidas por “Extenso (SIGLA)”, “SIGLA (extenso)” ou pela sigla de um autor institucional citado); gera avisos de *revisão humana*, nunca erros. Numerais romanos e códigos comuns (APA, DOI, URL, ISBN, PDF, AOA, EUR, USD) ignorados.
+- **Desempenho**: o painel executa a auditoria completa em cada carregamento (inclui renderização CSL do projeto). Adequado à escala de uma monografia; se ficar lento, guardar o resultado em cache invalidada por gravação.
+- A publicação **não é bloqueada** por avisos (decisão do autor); a página de publicação mostra o resumo antes de publicar.
+
 ## Lacunas abertas
 
 | ID | Pergunta | Impacto | Decisão provisória |

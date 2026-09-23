@@ -122,6 +122,9 @@ export function CitationDialog({
       }
     >
       <ErrorAlert error={error} />
+      <p className="muted" style={{ marginTop: 0 }}>
+        Dúvidas sobre a forma correta? <a href="/app/bibliografia/guia" target="_blank" rel="noreferrer">Abrir o Guia APA</a> (exemplos didáticos).
+      </p>
       <fieldset>
         <legend>Modalidade</legend>
         {MODES.map((m) => (

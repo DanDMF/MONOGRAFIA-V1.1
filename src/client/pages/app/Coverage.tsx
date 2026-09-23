@@ -12,7 +12,8 @@ const ROWS: [string, string, string][] = [
   ["Perfil institucional, pacote reproduzível ZIP, Markdown", "Pendente", "warn"],
   ["Gráficos, cenários/sensibilidade, VAL/TIR", "Pendente", "warn"],
   ["Caixa de entrada universal, OCR, conhecimento/afirmações, assistente", "Pendente", "warn"],
-  ["Próximo parágrafo, notas/conceitos, matriz da literatura, matriz de coerência, auditoria académica", "Pendente", "warn"],
+  ["Guia APA (exemplos gerados pelo motor) e auditoria académica com exceções justificadas", "Implementado e verificado (testes)", "ok"],
+  ["Próximo parágrafo, notas/conceitos, matriz da literatura, matriz de coerência", "Pendente", "warn"],
   ["Importação Excel/CSV de dados, backups e restauro", "Pendente", "warn"],
 ];
 

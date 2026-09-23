@@ -139,6 +139,8 @@ code, .mono { font-family: var(--mono); font-size: 0.9em; }
 .page-head p { margin: 0.25rem 0 0; color: var(--muted); max-width: 70ch; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; box-shadow: var(--shadow); }
 .card + .card { margin-top: 1rem; }
+.grid > .card + .card { margin-top: 0; }
+button.card { font: inherit; color: inherit; width: 100%; }
 .card h2 { margin-top: 0; font-size: 1.15rem; }
 .grid { display: grid; gap: 1rem; }
 .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }

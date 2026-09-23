@@ -30,6 +30,8 @@ import {
 } from "../modules/bibliography/references.js";
 import { importBibliography } from "../modules/bibliography/importers.js";
 import { toBibtex, toCslJson, toRis } from "../modules/bibliography/exporters.js";
+import { renderGuide, APA_STYLE_HOME, APA_VERSION, GUIDE_REVIEWED_AT } from "../modules/bibliography/apa-guide.js";
+import { justifyFinding, revokeException, runAcademicAudit } from "../modules/audit/academic.js";
 import { requireProject, type AppCtx } from "./context.js";
 
 const idParam = (req: { params: unknown }, key = "id") => parse(uuid, (req.params as Record<string, string>)[key]);
@@ -121,6 +123,27 @@ export function registerContentRoutes(app: FastifyInstance, ctx: AppCtx) {
   app.get("/api/projects/:projectId/references/:id/occurrences", async (req) => {
     const { projectId } = await requireProject(ctx, req, "read");
     return citationOccurrences(ctx.pool, projectId, idParam(req));
+  });
+
+  // ---------- Guia APA e auditoria académica ----------
+  app.get("/api/projects/:projectId/apa-guide", async (req) => {
+    const { projectId } = await requireProject(ctx, req, "read");
+    const { locale } = parse(z.object({ locale: z.enum(["pt-PT", "en-US"]).optional() }), req.query);
+    const loc = locale ?? (await projectLocale(ctx.pool, projectId));
+    return { locale: loc, version: APA_VERSION, reviewedAt: GUIDE_REVIEWED_AT, officialHome: APA_STYLE_HOME, rules: renderGuide(loc) };
+  });
+  app.get("/api/projects/:projectId/audit/academic", async (req) => {
+    const { projectId } = await requireProject(ctx, req, "read");
+    return runAcademicAudit(ctx.pool, projectId);
+  });
+  app.post("/api/projects/:projectId/audit/academic/exceptions", async (req, reply) => {
+    const { projectId, user } = await requireProject(ctx, req, "write");
+    return reply.code(201).send(await tx(ctx.pool, (c) => justifyFinding(c, projectId, user.id, req.body)));
+  });
+  app.post("/api/projects/:projectId/audit/academic/exceptions/:id/revoke", async (req) => {
+    const { projectId, user } = await requireProject(ctx, req, "write");
+    await revokeException(ctx.pool, projectId, user.id, idParam(req));
+    return { ok: true };
   });
 
   // ---------- Biblioteca ----------

@@ -14,9 +14,10 @@ Servidor HTTP (Fastify, TypeScript) ── src/server/app.ts
   ├── modules/
   │   ├── entities/        CRUD genérico com regras de domínio (experimento, finanças, excertos)
   │   ├── content/         secções, revisões, índice de citações, renderização HTML
-  │   ├── bibliography/    referências, CSL/APA (citeproc-js), importadores
+  │   ├── bibliography/    referências, CSL/APA (citeproc-js), importadores/exportadores, Guia APA
+  │   ├── audit/           auditoria académica (verificações, gravidade, exceções justificadas)
   │   ├── analysis/        motor de indicadores (puro), serviço, dependências
-  │   ├── exports/         XLSX (exceljs) e CSV protegido
+  │   ├── exports/         XLSX (exceljs), CSV protegido, documento académico DOCX (docx) e PDF (LibreOffice/UNO)
   │   ├── publication/     snapshots imutáveis e leitura pública
   │   └── jobs/            fila persistente em PostgreSQL
   ├── auth/            argon2id + sessões em base (token só no cookie; hash na base)
@@ -61,7 +62,7 @@ Valores ausentes são `NULL`; `numeric` para montantes/medições (strings no No
 
 ## Fila e automatizações
 
-`job` com `FOR UPDATE SKIP LOCKED`, `idempotency_key` única, tentativas com espera exponencial (`2^n × 5 s`), recuperação de tarefas órfãs (>15 min em “running”), cancelamento cooperativo. Tipos atuais: `export.xlsx`.
+`job` com `FOR UPDATE SKIP LOCKED`, `idempotency_key` única, tentativas com espera exponencial (`2^n × 5 s`), recuperação de tarefas órfãs (>15 min em “running”), cancelamento cooperativo. Tipos atuais: `export.xlsx`, `export.document` (DOCX/PDF).
 
 | Evento | Automático | Decisão humana |
 |---|---|---|
@@ -72,7 +73,8 @@ Valores ausentes são `NULL`; `numeric` para montantes/medições (strings no No
 | Colheita/despesa/repartição | Indicadores recalculados a pedido; soma de repartições validada (serviço + trigger) | Critério de afetação |
 | Correção | Histórico antes/depois; mapa de impacto; publicações possivelmente desatualizadas | Rever texto; publicar nova versão |
 | Exportação | Fila, ficheiro com SHA-256, auditoria | Escopo e privacidade |
-| Publicação | Snapshot imutável | Autorização explícita |
+| Publicação | Snapshot imutável; resumo da auditoria académica apresentado antes | Autorização explícita |
+| Auditoria académica | 17 verificações classificadas (estrutural / incompleta / revisão) | Corrigir ou justificar exceção (auditada, revogável) |
 
 ## Cliente
 
@@ -80,4 +82,4 @@ React 19 + React Router 7. Editor TipTap 3 carregado a pedido (bloco separado). 
 
 ## Pendências arquiteturais
 
-Armazenamento de objetos (S3-compatível), exportação DOCX/PDF, importação Excel/CSV, conhecimento/afirmações, caixa de entrada, backups automáticos — ver REQUIREMENTS.md.
+Armazenamento de objetos (S3-compatível), perfil institucional, importação Excel/CSV, conhecimento/afirmações, caixa de entrada, backups automáticos — ver REQUIREMENTS.md.

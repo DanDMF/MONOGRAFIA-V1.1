@@ -5,6 +5,7 @@ import { audit } from "../lib/audit.js";
 import { conflict } from "../lib/errors.js";
 import { emptyToNull, parse } from "../lib/validate.js";
 import { applyTemplate, listSections } from "../modules/content/sections.js";
+import { runAcademicAudit } from "../modules/audit/academic.js";
 import { requireProject, requireUser, type AppCtx } from "./context.js";
 
 const optText = (max = 1000) => z.preprocess(emptyToNull, z.string().trim().max(max).nullable()).optional();
@@ -120,10 +121,15 @@ export function registerProjectRoutes(app: FastifyInstance, ctx: AppCtx) {
       actions.push({ kind: "source", text: `“${s.title}” precisa de fonte.`, link: `/app/escrita/editor/${s.id}` });
     }
     if (counts!.unverified_references) actions.push({ kind: "bib", text: `${counts!.unverified_references} referência(s) por confirmar na fonte.`, link: "/app/bibliografia" });
-    if (counts!.unallocated_expenses) actions.push({ kind: "cost", text: `${counts!.unallocated_expenses} despesa(s) sem repartição por ciclo.`, link: "/app/analise/custos" });
+    if (counts!.unallocated_expenses) actions.push({ kind: "cost", text: `${counts!.unallocated_expenses} despesa(s) sem repartição por ciclo.`, link: "/app/dados/reparticoes" });
     if (counts!.cycles && !counts!.water_records)
-      actions.push({ kind: "data", text: "Sem medições de água: o consumo de água por kg não pode ser calculado.", link: "/app/experimento/consumos" });
-    return { counts, byStatus, words, inProgress: inProgress.map((s) => ({ id: s.id, title: s.title, status: s.status, number: s.number })), lastEdited, actions };
+      actions.push({ kind: "data", text: "Sem medições de água: o consumo de água por kg não pode ser calculado.", link: "/app/dados/consumos" });
+    const auditRes = await runAcademicAudit(ctx.pool, projectId);
+    if (auditRes.summary.structural)
+      actions.unshift({ kind: "audit", text: `${auditRes.summary.structural} erro(s) estrutural(is) na auditoria académica.`, link: "/app/bibliografia/auditoria" });
+    else if (auditRes.summary.incomplete)
+      actions.push({ kind: "audit", text: `${auditRes.summary.incomplete} informação(ões) incompleta(s) na auditoria académica.`, link: "/app/bibliografia/auditoria" });
+    return { counts, byStatus, words, audit: auditRes.summary, inProgress: inProgress.map((s) => ({ id: s.id, title: s.title, status: s.status, number: s.number })), lastEdited, actions };
   });
 
   app.get("/api/projects/:projectId/audit", async (req) => {
