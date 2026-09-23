@@ -13,7 +13,7 @@ Monografia interativa e centro de investigação sobre agricultura urbana vertic
 
 - Node.js ≥ 22.12 e npm
 - PostgreSQL ≥ 14 (testado com 16.13)
-- Opcional: Python 3 + `openpyxl` e LibreOffice (Calc) para a verificação independente de XLSX; Chromium/Playwright para a verificação em browser.
+- Opcional: LibreOffice Writer + módulo Python `uno` para exportar PDF (e Calc + `openpyxl` + `poppler-utils` para as verificações independentes); Chromium/Playwright para a verificação em browser.
 
 ## Configuração
 
@@ -63,7 +63,7 @@ Em `NODE_ENV=production` os cookies passam a `Secure` (usar HTTPS atrás de um p
 | Comando | O que verifica |
 |---|---|
 | `npm run typecheck` | TypeScript estrito (servidor e cliente) |
-| `npm test` | 76 testes: APA 7, cálculos, documento, percursos académico e analítico via API com PostgreSQL real (`TEST_DATABASE_URL`, **a base de testes é apagada e recriada**) |
+| `npm test` | 82 testes: APA 7, cálculos, documento, percursos académico e analítico e exportação DOCX/PDF via API com PostgreSQL real (`TEST_DATABASE_URL`, **a base de testes é apagada e recriada**) |
 | `npm run check` | typecheck + testes |
 | `npm run verify:xlsx -- ficheiro.xlsx` | Releitura independente (openpyxl) e recálculo das fórmulas no LibreOffice sem cache |
 | `CHROMIUM_PATH=… BASE=http://localhost:3000 EMAIL=… PASSWORD=… npm run e2e` | Percursos completos num browser real, telemóvel e teclado (cria dados de verificação no projeto indicado: usar uma base de desenvolvimento) |
@@ -78,7 +78,7 @@ Ainda não existe configuração ESLint (ver DECISIONS D-012).
 3. **Estrutura e editor**: abrir uma secção; escrever; “Inserir citação” (parentética, narrativa, direta curta, em bloco, fonte secundária, comunicação pessoal) com pré-visualização APA. A gravação é automática e o estado indica quando o servidor confirmou. “Guardar versão” cria um marco; “Versões” compara e restaura sem apagar.
 4. **Experimento**: locais → estruturas (áreas de implantação e cultivo distintas) → culturas → ciclos → colheitas/consumos/trabalho/registos de campo. Campos vazios significam “não registado”.
 5. **Análise**: despesas → repartições por ciclo (soma ≤ 100%) → **Indicadores** (cada valor abre fórmula, dados usados e exclusões).
-6. **Exportações**: escolher escopo e modo, ver o resumo, gerar (em segundo plano) e descarregar o XLSX.
+6. **Exportações**: XLSX (escopo, modo, resumo prévio) e documento académico Word/PDF (rascunho ou versão publicada; perfil APA de estudante). Na Biblioteca, “Exportar…” gera BibTeX/RIS/CSL-JSON.
 7. **Publicação**: selecionar secções (e, opcionalmente, indicadores) e publicar. O site público (`/p/<slug>`) mostra só versões publicadas; rascunhos posteriores não o alteram. Versões podem ser retiradas ou reapresentadas.
 
 ## Backups e restauro (procedimento manual — sistema automático pendente)

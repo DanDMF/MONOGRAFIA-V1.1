@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { tx } from "../db/pool.js";
+import { q, tx } from "../db/pool.js";
 import { parse, uuid } from "../lib/validate.js";
 import { badRequest } from "../lib/errors.js";
 import { DocValidationError, sanitizeDoc, type CitationAttrs } from "../../shared/doc.js";
@@ -17,7 +17,7 @@ import {
   setSectionArchived,
   updateSectionMeta,
 } from "../modules/content/sections.js";
-import { projectLocale, renderProjectCitations, renderSectionHtml } from "../modules/content/render.js";
+import { loadCslItems, projectLocale, renderProjectCitations, renderSectionHtml } from "../modules/content/render.js";
 import {
   createReference,
   findDuplicates,
@@ -29,6 +29,7 @@ import {
   updateReference,
 } from "../modules/bibliography/references.js";
 import { importBibliography } from "../modules/bibliography/importers.js";
+import { toBibtex, toCslJson, toRis } from "../modules/bibliography/exporters.js";
 import { requireProject, type AppCtx } from "./context.js";
 
 const idParam = (req: { params: unknown }, key = "id") => parse(uuid, (req.params as Record<string, string>)[key]);
@@ -157,6 +158,27 @@ export function registerContentRoutes(app: FastifyInstance, ctx: AppCtx) {
     const b = parse(z.object({ keepId: uuid, dropId: uuid, confirm: z.boolean().default(false) }), req.body);
     if (!b.confirm) return mergePreview(ctx.pool, projectId, b.keepId, b.dropId);
     return tx(ctx.pool, (c) => mergeReferences(c, projectId, user.id, b.keepId, b.dropId));
+  });
+  /** Exportação bibliográfica (biblioteca inteira ou só obras citadas). */
+  app.get("/api/projects/:projectId/references-export", async (req, reply) => {
+    const { projectId } = await requireProject(ctx, req, "read");
+    const { format, scope } = parse(z.object({ format: z.enum(["bibtex", "ris", "csl-json"]), scope: z.enum(["library", "cited"]).default("library") }), req.query);
+    const ids = (
+      await q<{ id: string }>(
+        ctx.pool,
+        scope === "cited"
+          ? "select distinct r.id from reference r join citation_item ci on ci.reference_id = r.id join citation c on c.id = ci.citation_id join section s on s.id = c.section_id where r.project_id = $1 and s.archived_at is null"
+          : "select id from reference where project_id = $1 and archived_at is null",
+        [projectId],
+      )
+    ).map((r) => r.id);
+    const { items } = await loadCslItems(ctx.pool, projectId, ids);
+    const list = [...items.values()];
+    const [body, type, ext] =
+      format === "bibtex" ? [toBibtex(list), "application/x-bibtex", "bib"] : format === "ris" ? [toRis(list), "application/x-research-info-systems", "ris"] : [toCslJson(list), "application/json", "json"];
+    reply.header("content-type", `${type}; charset=utf-8`);
+    reply.header("content-disposition", `attachment; filename="referencias-${scope}.${ext}"`);
+    return body;
   });
   /** Importação BibTeX/RIS/CSL-JSON: pré-visualização (dryRun) e confirmação. */
   app.post("/api/projects/:projectId/references-import", async (req) => {

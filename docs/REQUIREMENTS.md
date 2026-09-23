@@ -6,7 +6,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 
 **Fases** (secções 48/64): F0 Fundação · F1 Monografia · F2 Bibliografia · F3 Investigação · F4 Economia · F5 Dados e Excel · F6 Análise e portfólio · F7 Entrega · TX Núcleo transversal (51–65).
 
-**Evidência**: `T-APA` = tests/apa.test.ts · `T-CALC` = tests/calc.test.ts · `T-ACAD` = tests/academic-flow.test.ts · `T-ANA` = tests/analytic-flow.test.ts · `E2E` = scripts/e2e-browser.mjs (Chromium real) · `XLSX` = scripts/verify_xlsx.py (openpyxl + recálculo LibreOffice).
+**Evidência**: `T-APA` = tests/apa.test.ts · `T-CALC` = tests/calc.test.ts · `T-ACAD` = tests/academic-flow.test.ts · `T-ANA` = tests/analytic-flow.test.ts · `E2E` = scripts/e2e-browser.mjs (Chromium real) · `XLSX` = scripts/verify_xlsx.py (openpyxl + recálculo LibreOffice) · `T-DOC` = tests/document-export.test.ts (DOCX/PDF; páginas do PDF renderizadas e inspecionadas visualmente).
 
 Última atualização: 2026-09-23.
 
@@ -34,10 +34,10 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-F-002 | Migrações que preservam dados; migrador recusa alteração de migração aplicada | F0 | Implementado | `db/migrate.ts` (checksum) |
 | VRB-F-003 | Dados de demonstração opt-in, isolados, identificados | F0 | Parcial | Coluna `project.is_demo` + faixa na interface; gerador de dados demo pendente |
 | VRB-G-001 | Scripts de tipos, testes, build, migrações e arranque verificados | F0 | Verificado | `package.json`; lint ESLint pendente (D-012) |
-| VRB-G-002 | Testes de cálculo, APA, autorização, snapshots, importação, exportação, idempotência | F0 | Verificado | 76 testes (ver PROGRESS.md) |
+| VRB-G-002 | Testes de cálculo, APA, autorização, snapshots, importação, exportação, idempotência | F0 | Verificado | 82 testes (ver PROGRESS.md) |
 | VRB-G-003 | Verificação em browser dos dois percursos, erros de gravação e telemóvel | F7 | Verificado | `E2E` (percursos, telemóvel 390 px, teclado); erro de gravação coberto só na API |
 | VRB-G-004 | XLSX relido com ferramenta independente | F5 | Verificado | `XLSX` |
-| VRB-G-005 | DOCX/PDF renderizados antes de declarar prontos | F7 | Pendente | Exportação DOCX/PDF por implementar |
+| VRB-G-005 | DOCX/PDF renderizados antes de declarar prontos | F7 | Verificado | `T-DOC`; páginas do PDF renderizadas com `pdftoppm` e inspecionadas (título, índice, corpo, referências) |
 
 ## 1–3. Missão, contexto e camadas de configuração
 
@@ -47,7 +47,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-001-002 | Do resultado ao cálculo ao registo original | F4 | Verificado | Indicadores com `inputs` (tabela/ID); diálogo “Ver cálculo”; `T-ANA` |
 | VRB-001-003 | Do parágrafo à fonte | F2 | Verificado | Citação → referência → ocorrências; `T-ACAD` |
 | VRB-001-004 | Automatizações indicam o que fazem, propõem e o que depende de dados | TX | Parcial | Estados de indicador, avisos de citação; matriz formal de automatizações em ARCHITECTURE.md |
-| VRB-001-005 | Produto inclui site público, área privada, editor, biblioteca, APA, registos, economia, exportações, histórico, publicação | TX | Parcial | Simulador, Word/PDF, backups pendentes |
+| VRB-001-005 | Produto inclui site público, área privada, editor, biblioteca, APA, registos, economia, exportações, histórico, publicação | TX | Parcial | Simulador e backups automáticos pendentes |
 | VRB-002-001 | Projeto real começa vazio (sem dados inventados), com modelos e orientações | F0 | Verificado | `applyTemplate` só cria estrutura + orientação; `E2E` parte de base vazia |
 | VRB-002-002 | Autor, título, instituição editáveis; nome e título independentes | F0 | Implementado | Definições (`Settings.tsx`), campos `name`/`academic_title` |
 | VRB-002-003 | Culturas extensíveis (salsa, coentros, manjericão, hortelã…) | F3 | Implementado | Entidade `crop` livre |
@@ -160,7 +160,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-016-010 | Sem autor: título na posição do autor | F2 | Implementado | Substituição nativa do estilo CSL; sem teste dedicado |
 | VRB-017-001 | Paráfrase com localizador opcional | F2 | Verificado | `T-APA` (par. 4) |
 | VRB-017-002 | Citação curta (<40 palavras) com aspas e localizador | F2 | Verificado | `T-APA` (limite 39/40); `docToHtml` |
-| VRB-017-003 | Citação em bloco (≥40) sem aspas, parêntese após pontuação, recuo 1,27 cm | F2 | Implementado | Nó `citationBlock`; CSS 1,27 cm; exportação DOCX pendente |
+| VRB-017-003 | Citação em bloco (≥40) sem aspas, parêntese após pontuação, recuo 1,27 cm | F2 | Verificado | Nó `citationBlock`; CSS 1,27 cm; estilo DOCX `BlockQuote` (`T-DOC`) |
 | VRB-017-004 | p./pp.; página impressa ≠ página do PDF | F2 | Verificado | `T-APA`; `excerpt.pdf_page_index` separado |
 | VRB-017-005 | Parágrafo, secção, timestamp como localizadores | F2 | Implementado | `LOCATOR_LABELS`; sondagem CSL documentada |
 | VRB-017-006 | Aviso de citação direta sem localizador | F2 | Verificado | `T-APA` |
@@ -170,7 +170,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-018-003 | Participantes do estudo tratados como dados anonimizados | F3 | Pendente | — |
 | VRB-018-004 | Verificador citação–referência reconhece exceções | F2 | Pendente | Auditoria académica pendente |
 | VRB-019-001 | Biblioteca consultada ≠ referências citadas; exportação parcial com bibliografia do escopo | F2 | Verificado | `T-ACAD` (publicação parcial); `T-APA` |
-| VRB-019-002 | Ordem alfabética, recuo francês 1,27 cm, espaçamento duplo | F2 | Implementado | CSL (hanging indent, linespacing 2); CSS `.bibliography` |
+| VRB-019-002 | Ordem alfabética, recuo francês 1,27 cm, espaçamento duplo | F2 | Verificado | CSL; CSS `.bibliography`; estilo DOCX `Reference` (hanging 720) (`T-DOC`, PDF inspecionado) |
 | VRB-019-003 | Até 20 autores todos; 21+: 19 + … + último, sem & | F2 | Verificado | `T-APA` |
 | VRB-019-004 | Modelos por tipo renderizados pelo motor | F2 | Implementado | Estilo CSL; teses/relatórios mapeados em `toCsl` |
 | VRB-019-005 | DOI como https://doi.org/… | F2 | Verificado | `T-APA`, `T-ACAD` |
@@ -178,9 +178,9 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-019-007 | Revisão de campos em falta com explicação | F2 | Implementado | Detalhe da fonte (“Informação em falta…”) |
 | VRB-020-001 | Guia APA contextual com versão, origem e data | F2 | Pendente | — |
 | VRB-020-002 | Auditoria académica (citações desligadas, duplicados, DOI malformado, títulos saltados…) | F2 | Parcial | Avisos por citação; DOI validado; auditoria agregada pendente |
-| VRB-021-001 | Cinco níveis de título APA na exportação | F7 | Pendente | Editor usa níveis 2–5; exportação pendente |
+| VRB-021-001 | Cinco níveis de título APA na exportação | F7 | Verificado | Heading1 centrado negrito, Heading2 esquerda negrito, Heading3 negrito itálico, níveis 4–5 em linha (`T-DOC`) |
 | VRB-021-002 | Tabelas e figuras numeradas com notas e fonte | F6 | Pendente | — |
-| VRB-021-003 | Perfil APA de estudante (margens 2,54 cm, duplo, 1,27 cm) | F7 | Pendente | Documentado em EXPORTS.md |
+| VRB-021-003 | Perfil APA de estudante (margens 2,54 cm, duplo, 1,27 cm) | F7 | Verificado | `docx.ts`; A4; paginação superior direita; sem running head (`T-DOC`) |
 
 ## 22–29. Pesquisa, protocolo, estruturas, ciclos, colheitas, recursos, custos, moedas
 
@@ -274,9 +274,9 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-038-009 | Divisão/ZIP quando limites são atingidos, sem truncar | F5 | Pendente | Limite atual 5 000 linhas no CSV (documentado) |
 | VRB-039-001 | Assistente de importação Excel/CSV com mapeamento e pré-visualização | F5 | Pendente | — |
 | VRB-039-002 | Lotes de importação anuláveis | F5 | Pendente | — |
-| VRB-040-001 | DOCX com estilos reais, sumário, legendas, referências | F7 | Pendente | Dependência `docx` instalada |
-| VRB-040-002 | PDF com texto selecionável, índice, paginação verificada | F7 | Pendente | LibreOffice disponível para conversão/verificação |
-| VRB-040-003 | Exportação bibliográfica BibTeX/RIS/CSL-JSON | F2 | Pendente | Importação feita; exportação pendente |
+| VRB-040-001 | DOCX com estilos reais, sumário, legendas, referências | F7 | Parcial | Estilos reais, sumário (campo TOC com pedido de atualização), citações e referências verificados (`T-DOC`); legendas de tabelas/figuras pendentes (dependem de VRB-021-002) |
+| VRB-040-002 | PDF com texto selecionável, índice, paginação verificada | F7 | Verificado | LibreOffice via UNO atualiza o índice; `pdftotext`, `pdffonts` (fontes incorporadas), páginas inspecionadas (`T-DOC`) |
+| VRB-040-003 | Exportação bibliográfica BibTeX/RIS/CSL-JSON | F2 | Verificado | `exporters.ts`; ida e volta pelos importadores (`T-APA`) |
 | VRB-040-004 | Pacote ZIP reproduzível | F7 | Pendente | — |
 
 ## 41–47. Publicação, portfólio, planeamento, segurança, modelo, fluxos, aceitação
@@ -305,10 +305,10 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-046-002 | Fluxo Investigar | F3 | Parcial | Sem figura; restante verificado |
 | VRB-046-003 | Fluxo Excel | F5 | Verificado | `E2E`, `XLSX` |
 | VRB-046-004 | Fluxo Atualizar (corrigir → impacto → recalcular → publicar) | F4 | Verificado | `T-ANA` (histórico + dependentes) |
-| VRB-046-005 | Fluxo Entregar (DOCX/PDF) | F7 | Pendente | — |
+| VRB-046-005 | Fluxo Entregar (DOCX/PDF) | F7 | Parcial | Exportar DOCX/PDF de rascunho ou publicação verificado (`T-DOC`, `E2E`); perfil institucional e auditoria de pendências pendentes |
 | VRB-047-001 | Critérios de aceitação APA (lista da secção 47) | F2 | Verificado | `T-APA`, `T-ACAD` |
 | VRB-047-002 | Critérios de dados e cálculos | F4 | Verificado | `T-CALC` |
-| VRB-047-003 | Critérios Excel | F5 | Parcial | Importação (conflitos) e DOCX/PDF pendentes |
+| VRB-047-003 | Critérios Excel e documentos | F5 | Parcial | XLSX e DOCX/PDF verificados; importação (conflitos) pendente |
 | VRB-047-004 | Critérios de acesso e publicação | F1 | Parcial | Backup/restauro pendente |
 
 ## 48–50. Fases, entregáveis, sucesso
@@ -360,7 +360,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 | VRB-063-C | Cenário C (correção → revisão) | TX | Parcial | Histórico e impacto verificados; sinalização da discussão pendente |
 | VRB-063-D | Cenário D (falta de dados de água) | TX | Verificado | `T-CALC` |
 | VRB-063-E | Cenário E (memória) | TX | Pendente | — |
-| VRB-063-F | Cenário F (entrega) | TX | Pendente | — |
+| VRB-063-F | Cenário F (entrega) | TX | Parcial | DOCX/PDF e publicação com a mesma versão de origem (`T-DOC`); perfil institucional pendente |
 | VRB-064-001 | Estado do sistema para o autor (processamento, erros, backups) | TX | Parcial | `/api/health`; lista de tarefas nas Exportações |
 | VRB-064-002 | Integrações indisponíveis não bloqueiam escrita | TX | Verificado | Sem integrações obrigatórias |
 | VRB-065-001 | Rastreabilidade de todas as secções até à conclusão | TX | Verificado | Este ficheiro |

@@ -7,6 +7,81 @@ import { fmtDateTime } from "../../format";
 const SHEETS = ["LEIA_ME", "Metadados", "Dicionario", "Locais", "Estruturas", "Culturas", "Ciclos", "Registos_Campo", "Colheitas", "Consumos", "Trabalho", "Ativos", "Despesas", "Reparticoes", "Vendas", "Taxas_Cambio", "Indicadores", "Formulas", "Referencias"];
 const JOB: Record<string, string> = { pending: "Pendente", running: "A processar", succeeded: "Concluída", failed: "Falhou", cancelled: "Cancelada" };
 
+function AcademicDocument({ onQueued }: { onQueued: () => void }) {
+  const base = useProjectApi();
+  const pubs = useAsync(() => get<any[]>(`${base}/publications`), [base]);
+  const [source, setSource] = useState<"draft" | "publication">("draft");
+  const [pubNumber, setPubNumber] = useState<number | null>(null);
+  const [format, setFormat] = useState<"docx" | "pdf">("docx");
+  const [titlePage, setTitlePage] = useState(true);
+  const [toc, setToc] = useState(true);
+  const [numberHeadings, setNumberHeadings] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const active = (pubs.data ?? []).filter((p) => !p.withdrawn_at);
+  return (
+    <section className="card stack">
+      <h2>Documento académico (Word / PDF)</h2>
+      <p className="muted">
+        Perfil APA 7 de estudante: A4, margens 2,54 cm, espaçamento duplo, recuo 1,27 cm, títulos APA de nível 1–5, citações e bibliografia do escopo. O sumário é um
+        campo do Word (atualizar campos ao abrir); no PDF é preenchido automaticamente. O perfil institucional pode alterar estas regras quando for configurado.
+      </p>
+      <ErrorAlert error={error} />
+      <div className="row">
+        <label className="check">
+          <input type="radio" checked={source === "draft"} onChange={() => setSource("draft")} /> Rascunho atual (secções com texto)
+        </label>
+        <label className="check">
+          <input type="radio" checked={source === "publication"} onChange={() => setSource("publication")} disabled={!active.length} /> Versão publicada
+        </label>
+        {source === "publication" && (
+          <select aria-label="Versão publicada" value={pubNumber ?? ""} onChange={(e) => setPubNumber(Number(e.target.value) || null)} style={{ maxWidth: 200 }}>
+            <option value="">— escolher —</option>
+            {active.map((p) => (
+              <option key={p.id} value={p.number}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+      <div className="row">
+        <label className="check">
+          <input type="radio" checked={format === "docx"} onChange={() => setFormat("docx")} /> Word (.docx)
+        </label>
+        <label className="check">
+          <input type="radio" checked={format === "pdf"} onChange={() => setFormat("pdf")} /> PDF (requer LibreOffice no servidor)
+        </label>
+      </div>
+      <div className="row">
+        <label className="check">
+          <input type="checkbox" checked={titlePage} onChange={(e) => setTitlePage(e.target.checked)} /> Página de título
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={toc} onChange={(e) => setToc(e.target.checked)} /> Índice
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={numberHeadings} onChange={(e) => setNumberHeadings(e.target.checked)} /> Numerar capítulos (opção institucional)
+        </label>
+      </div>
+      <div>
+        <button
+          className="btn btn-primary"
+          disabled={source === "publication" && !pubNumber}
+          onClick={() =>
+            void post(
+              `${base}/exports/document`,
+              { source, publicationNumber: pubNumber ?? undefined, format, titlePage, toc, numberHeadings },
+              { "Idempotency-Key": crypto.randomUUID() },
+            ).then(onQueued, (e) => setError(e.message))
+          }
+        >
+          Gerar {format.toUpperCase()}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export function ExportsPage() {
   const base = useProjectApi();
   const { canWrite } = useSession();
@@ -31,7 +106,7 @@ export function ExportsPage() {
 
   return (
     <>
-      <PageHead title="Exportar para Excel" intro="Ficheiros .xlsx reais: números como números, datas como datas, IDs como texto, células vazias = não registado. Fórmulas reais do Excel recalculam os indicadores a partir das folhas." />
+      <PageHead title="Exportações" intro="Ficheiros .xlsx reais: números como números, datas como datas, IDs como texto, células vazias = não registado. Fórmulas reais do Excel recalculam os indicadores a partir das folhas." />
       <ErrorAlert error={error} />
       <div className="grid grid-2">
         <section className="card stack">
@@ -110,6 +185,7 @@ export function ExportsPage() {
           )}
         </section>
       </div>
+      <AcademicDocument onQueued={() => void jobs.reload()} />
       <section className="card">
         <h2>Exportações recentes</h2>
         <p className="muted">Geradas em segundo plano; downloads autenticados, válidos durante 7 dias.</p>

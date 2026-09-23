@@ -57,6 +57,12 @@ Formato: pergunta → decisão (provisória ou firme) → fundamento → alterna
 ## D-014 · Secção 52 (memória do projeto) · Lacuna
 - O contexto relatado pelo autor não foi introduzido como dados nem como referências: aguarda o módulo “Memória do projeto” e a confirmação do autor sobre origem e estatuto de cada registo.
 
+## D-015 · Documento académico DOCX/PDF · Firme (2026-09-23)
+- DOCX com a biblioteca `docx` (estilos e numeração reais, campo TOC); PDF produzido pelo LibreOffice a partir do mesmo DOCX via UNO (`scripts/lo_convert.py`), que atualiza os índices antes de exportar. Assim, DOCX e PDF partilham a mesma fonte e o mesmo layout.
+- **Alternativas:** PDF direto (pdfmake/Chromium print) — rejeitado, porque obrigaria a manter dois layouts. Pandoc — não instalado e com menos controlo sobre os estilos APA.
+- Fonte Times New Roman 12 pt (APA permite outras fontes legíveis; o perfil institucional poderá alterar); A4 por omissão (contexto Angola/Portugal).
+- A publicação passa a guardar o documento estruturado (`doc`) e o mapa de citações no snapshot, para exportar exatamente a versão publicada; estes campos não são servidos nas rotas públicas.
+
 ## Lacunas abertas
 
 | ID | Pergunta | Impacto | Decisão provisória |

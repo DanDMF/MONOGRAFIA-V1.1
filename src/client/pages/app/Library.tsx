@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ApiError, get, post, put } from "../../api";
+import { ApiError, download, get, post, put } from "../../api";
 import { useProjectApi, useSession } from "../../session";
 import { Badge, Dialog, ErrorAlert, Loading, PageHead, useAsync } from "../../components/ui";
 
@@ -54,6 +54,26 @@ export function LibraryPage() {
             </Link>
           </>
         )}
+        <select
+          aria-label="Exportar bibliografia"
+          className="btn"
+          value=""
+          onChange={(e) => {
+            const [format, scope] = e.target.value.split(":");
+            if (!format) return;
+            const ext = format === "bibtex" ? "bib" : format === "ris" ? "ris" : "json";
+            void download(`${base}/references-export?format=${format}&scope=${scope}`, `referencias-${scope}.${ext}`).catch((err) => alert(err.message));
+          }}
+          style={{ width: "auto" }}
+        >
+          <option value="">Exportar…</option>
+          <option value="bibtex:library">BibTeX — biblioteca</option>
+          <option value="bibtex:cited">BibTeX — só citadas</option>
+          <option value="ris:library">RIS — biblioteca</option>
+          <option value="ris:cited">RIS — só citadas</option>
+          <option value="csl-json:library">CSL-JSON — biblioteca</option>
+          <option value="csl-json:cited">CSL-JSON — só citadas</option>
+        </select>
       </PageHead>
       <input type="search" aria-label="Pesquisar por autor, título, tema ou ano" placeholder="Pesquisar autor, título, tema ou ano…" value={search} onChange={(e) => setSearch(e.target.value)} style={{ maxWidth: 420, marginBottom: "0.75rem" }} />
       {dups.data && dups.data.length > 0 && (

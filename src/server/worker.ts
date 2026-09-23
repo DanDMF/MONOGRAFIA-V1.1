@@ -4,7 +4,7 @@ import { loadConfig } from "./config.js";
 import { createPool } from "./db/pool.js";
 import { LocalStorage } from "./lib/storage.js";
 import { runOnce } from "./modules/jobs/queue.js";
-import { exportJobHandler } from "./http/routes-data.js";
+import { documentJobHandler, exportJobHandler } from "./http/routes-data.js";
 import type { JobHandler } from "./modules/jobs/queue.js";
 
 loadDotEnv();
@@ -13,6 +13,7 @@ const pool = createPool(config.databaseUrl);
 const ctx = { pool, config, storage: new LocalStorage(config.storageDir) };
 export const handlers: Record<string, JobHandler> = {
   "export.xlsx": exportJobHandler(ctx) as unknown as JobHandler,
+  "export.document": documentJobHandler(ctx) as unknown as JobHandler,
 };
 
 let stopping = false;

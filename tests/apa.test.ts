@@ -235,3 +235,39 @@ describe("limite de 40 palavras", () => {
     expect(countWords("Olá — mundo , texto.")).toBe(3);
   });
 });
+
+describe("exportação bibliográfica (ida e volta pelos importadores)", async () => {
+  const { toBibtex, toRis, toCslJson } = await import("../src/server/modules/bibliography/exporters.js");
+  const { parseBibtex, parseRis, parseCslJson } = await import("../src/server/modules/bibliography/importers.js");
+  const items: CslItem[] = [
+    item("r1", [{ family: "Martins Ferreira", given: "Fábio Daniel", "non-dropping-particle": "de" }, { family: "Costa", given: "Bruno" }], 2024, {
+      title: "Custos & produtividade: estudo {fictício}",
+      volume: "3",
+      issue: "2",
+      page: "10–20",
+      DOI: "10.1234/abc",
+    }),
+    item("r2", [{ literal: "Instituto de Estudos Urbanos" }], 2023, { type: "report", title: "Relatório", publisher: "IEU" }),
+  ];
+  it("BibTeX preserva autores (institucional entre chavetas), título e DOI", () => {
+    const back = parseBibtex(toBibtex(items));
+    expect(back).toHaveLength(2);
+    expect(back[0]!.data.contributors).toEqual([
+      { role: "author", family: "de Martins Ferreira", given: "Fábio Daniel" },
+      { role: "author", family: "Costa", given: "Bruno" },
+    ]);
+    expect(back[0]!.data.title).toBe("Custos & produtividade: estudo fictício");
+    expect(back[0]!.data.pages).toBe("10–20");
+    expect(back[0]!.data.doi).toBe("10.1234/abc");
+    expect(back[1]!.data.contributors![0]).toMatchObject({ literal: "Instituto de Estudos Urbanos" });
+    expect(back[1]!.data.type).toBe("report");
+  });
+  it("RIS e CSL-JSON fazem ida e volta", () => {
+    const ris = parseRis(toRis(items));
+    expect(ris.map((c) => c.data.title)).toEqual([items[0]!.title, "Relatório"]);
+    expect(ris[0]!.data.pages).toBe("10–20");
+    const csl = parseCslJson(toCslJson(items));
+    expect(csl[0]!.data.contributors![0]).toMatchObject({ family: "Martins Ferreira", particle: "de" });
+    expect(csl[0]!.data.issued_year).toBe(2024);
+  });
+});

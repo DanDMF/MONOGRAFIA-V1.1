@@ -68,6 +68,7 @@ export async function createPublication(db: Queryable, projectId: string, userId
     let html: string | null = null;
     let wordCount = 0;
     let revision: { id: string; number: number } | null = null;
+    let doc: DocNode | null = null;
     if (selected.has(s.id) && s.current_revision_id) {
       const rev = await one<{ id: string; number: number; doc: DocNode }>(
         db,
@@ -80,6 +81,7 @@ export async function createPublication(db: Queryable, projectId: string, userId
         );
         wordCount = docWordCount(rev.doc);
         revision = { id: rev.id, number: rev.number };
+        doc = rev.doc;
       }
     }
     sectionsOut.push({
@@ -90,6 +92,9 @@ export async function createPublication(db: Queryable, projectId: string, userId
       title: s.title,
       depth: depth(s.id),
       html,
+      doc,
+      template_key: s.template_key,
+      numbered: s.numbered,
       wordCount,
       revision,
       sectionVersion: s.version,
@@ -131,7 +136,7 @@ export async function createPublication(db: Queryable, projectId: string, userId
   if (input.includeBibliography) {
     await q(db, "insert into publication_item (publication_id, item_type, item_key, content) values ($1,'bibliography','bibliography',$2)", [
       pid,
-      { entries: rendered.bibliography, style: rendered.style, locale },
+      { entries: rendered.bibliography, style: rendered.style, locale, citations: rendered.citations },
     ]);
   }
   if (indicators) {
@@ -221,7 +226,8 @@ export async function publicOverview(db: Queryable, slug: string, publicBaseUrl:
     "select number, label, created_at, note from publication where project_id = $1 and withdrawn_at is null order by number desc",
     [pub.project_id],
   );
-  const bibliography = items.find((i) => i.item_type === "bibliography")?.content ?? null;
+  const bib = items.find((i) => i.item_type === "bibliography")?.content ?? null;
+  const bibliography = bib ? { entries: bib.entries, style: bib.style, locale: bib.locale } : null;
   const indicators = items.find((i) => i.item_type === "indicators")?.content ?? null;
   return {
     publication: { number: pub.number, label: pub.label, note: pub.note, created_at: pub.created_at },
@@ -243,7 +249,9 @@ export async function publicSection(db: Queryable, slug: string, sectionId: stri
     [pub.id, sectionId],
   );
   if (!item) throw notFound("Secção publicada");
-  return item.content;
+  // O documento estruturado fica no snapshot (para DOCX/PDF da versão), mas não é servido ao público.
+  const { doc: _doc, ...visible } = item.content;
+  return visible;
 }
 
 /** "Como citar": construído com dados reais (autor, título, data e versão da publicação, URL). Sem DOI inventado. */

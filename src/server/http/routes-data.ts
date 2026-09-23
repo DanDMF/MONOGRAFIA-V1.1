@@ -19,6 +19,9 @@ import {
 import { computeProjectIndicators } from "../modules/analysis/indicators-service.js";
 import { breakEven } from "../modules/analysis/calc.js";
 import { buildResearchWorkbook, excelExportSchema, toCsv } from "../modules/exports/excel.js";
+import { academicSource, documentExportSchema } from "../modules/exports/academic.js";
+import { buildAcademicDocx } from "../modules/exports/docx.js";
+import { docxToPdf } from "../lib/office.js";
 import { enqueue, getJob, requestCancel } from "../modules/jobs/queue.js";
 import { dependentsOf } from "../modules/analysis/dependencies.js";
 import {
@@ -127,6 +130,21 @@ export function registerDataRoutes(app: FastifyInstance, ctx: AppCtx) {
     });
     return reply.code(202).send(job);
   });
+  /** Documento académico DOCX/PDF (fila): a partir do rascunho (revisões identificadas) ou de uma publicação. */
+  app.post("/api/projects/:projectId/exports/document", async (req, reply) => {
+    const { projectId, user } = await requireProject(ctx, req, "write");
+    const options = parse(documentExportSchema, req.body ?? {});
+    const key = (req.headers["idempotency-key"] as string | undefined)?.slice(0, 100);
+    const job = await enqueue(ctx.pool, {
+      projectId,
+      kind: "export.document",
+      payload: { options, userId: user.id },
+      createdBy: user.id,
+      idempotencyKey: key ? `${projectId}:${key}` : undefined,
+      maxAttempts: 2,
+    });
+    return reply.code(202).send(job);
+  });
   /** CSV da tabela atual (filtros aplicados no cliente são reenviados como linhas de IDs). */
   app.post("/api/projects/:projectId/exports/csv/:entity", async (req, reply) => {
     const { projectId, user } = await requireProject(ctx, req, "write");
@@ -221,6 +239,47 @@ export function registerDataRoutes(app: FastifyInstance, ctx: AppCtx) {
   app.get("/api/public/:slug/v/:number", async (req) => publicOverview(ctx.pool, slugParam(req), ctx.config.publicBaseUrl, pubNum(req)));
   app.get("/api/public/:slug/sections/:id", async (req) => publicSection(ctx.pool, slugParam(req), idParam(req)));
   app.get("/api/public/:slug/v/:number/sections/:id", async (req) => publicSection(ctx.pool, slugParam(req), idParam(req), pubNum(req)));
+}
+
+async function storeExport(ctx: AppCtx, projectId: string, jobId: string, userId: string | null, buffer: Buffer, fileName: string, contentType: string, ext: string) {
+  const sha = crypto.createHash("sha256").update(buffer).digest("hex");
+  const key = `projects/${projectId}/exports/${jobId}.${ext}`; // determinístico: repetir não duplica
+  await ctx.storage.put(key, buffer);
+  const file = await one<{ id: string }>(
+    ctx.pool,
+    `insert into stored_file (project_id, storage_key, original_name, content_type, size_bytes, sha256, purpose, expires_at, created_by)
+     values ($1,$2,$3,$4,$5,$6,'export', now() + interval '7 days', $7)
+     on conflict (storage_key) do update set size_bytes = excluded.size_bytes, sha256 = excluded.sha256
+     returning id`,
+    [projectId, key, fileName, contentType, buffer.length, sha, userId],
+  );
+  return { fileId: file!.id, sha256: sha, size: buffer.length };
+}
+
+/** Handler da fila: documento académico DOCX ou PDF. */
+export function documentJobHandler(ctx: AppCtx) {
+  return async ({ job, progress }: { job: { id: string; project_id: string | null; payload: Record<string, unknown> }; progress: (p: unknown) => Promise<void> }) => {
+    const projectId = job.project_id!;
+    const userId = (job.payload.userId as string) ?? null;
+    await progress({ step: "a preparar o conteúdo" });
+    const { input, options, manifest } = await academicSource(ctx.pool, projectId, job.payload.options);
+    const docx = await buildAcademicDocx(input);
+    const slug = (await one<{ slug: string }>(ctx.pool, "select slug from project where id = $1", [projectId]))!.slug;
+    const base = `VRBAN_${slug}_${manifest.source === "publication" ? String(manifest.publication) : "rascunho"}_${new Date().toISOString().slice(0, 10)}`;
+    let stored;
+    let fileName;
+    if (options.format === "pdf") {
+      await progress({ step: "a converter para PDF" });
+      const pdf = await docxToPdf(docx);
+      fileName = `${base}.pdf`;
+      stored = await storeExport(ctx, projectId, job.id, userId, pdf, fileName, "application/pdf", "pdf");
+    } else {
+      fileName = `${base}.docx`;
+      stored = await storeExport(ctx, projectId, job.id, userId, docx, fileName, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx");
+    }
+    await audit(ctx.pool, { projectId, userId, action: "export", entityType: options.format, entityId: stored.fileId, summary: `${fileName} (${input.origin})`, after: manifest });
+    return { ...stored, fileName, summary: { scope: input.origin, format: options.format, sections: input.sections.filter((s) => s.doc).length, references: input.bibliography.length } };
+  };
 }
 
 /** Handler da fila: gera o XLSX, guarda no armazenamento com validade e devolve o ID do ficheiro. */

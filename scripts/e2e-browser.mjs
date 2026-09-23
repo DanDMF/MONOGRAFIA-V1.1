@@ -184,6 +184,16 @@ const out = `${SHOTS}/export-browser.xlsx`;
 await dl.saveAs(out);
 log(`XLSX gerado pela fila e descarregado: ${out}`);
 
+// Documento académico (Word) pela interface
+await page.getByRole("button", { name: "Gerar DOCX" }).click();
+const docxRow = page.locator("tr", { hasText: ".docx" });
+await docxRow.getByRole("button", { name: "Descarregar" }).waitFor({ timeout: 60000 });
+const [dd] = await Promise.all([page.waitForEvent("download"), docxRow.getByRole("button", { name: "Descarregar" }).click()]);
+const docxOut = `${SHOTS}/documento-browser.docx`;
+await dd.saveAs(docxOut);
+if (fs.readFileSync(docxOut).subarray(0, 2).toString() !== "PK") throw new Error("DOCX inválido");
+log(`DOCX académico gerado pela fila e descarregado: ${docxOut}`);
+
 // ---------- Telemóvel ----------
 const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const m = await mobile.newPage();
