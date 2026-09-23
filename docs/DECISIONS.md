@@ -76,6 +76,11 @@ Formato: pergunta → decisão (provisória ou firme) → fundamento → alterna
 - O teste local exigiu um Dockerfile auxiliar (não versionado) com a CA/proxy do ambiente de desenvolvimento, o espelho `public.ecr.aws` (limite de pedidos do Docker Hub) e fontes apt em HTTPS; o `Dockerfile` do repositório não depende disso.
 - **Alternativas:** Railway/Fly.io (semelhantes; exigem CLI ou cartão em alguns casos), VPS (exige terminal). Render escolhido por permitir tudo pelo navegador do telemóvel. **Riscos:** limites do plano gratuito (adormecimento, prazo da base, memória); preços e limites a confirmar pelo autor.
 
+## D-018 · Prioridades: o software segue a monografia · Firme (2026-09-24)
+- **Decisão do autor:** não completar os requisitos pendentes por ordem da matriz, mas pelos que permitem escrever já. Ordem: (1) proteger o código (tag estável + PR para `main`); (2) pôr online **como ambiente de trabalho/teste**; (3) Próximo parágrafo (VRB-012-001: ideia → fonte → leitura → notas → parágrafo → revisão, o método “1% por dia”); (4) notas/conceitos + ficha de leitura + matriz da literatura (VRB-022-002, VRB-012-003, VRB-012-004); (5) perfil institucional logo que exista regulamento (VRB-003-*); (6) importação Excel/CSV, tabelas, figuras e gráficos; (7) cenários, VAL/TIR, câmbio quando houver dados; (8) OCR, IA, galeria, DOI automático por último.
+- **Backups passam a requisito essencial** antes de dados experimentais insubstituíveis no alojamento gratuito: enquanto não houver backup automático ensaiado (VRB-044-004), o autor mantém os dados originais fora do sistema e faz exportações regulares.
+- **Fundamento:** “2/3 dos requisitos” não é “2/3 do trabalho útil”; os módulos de planeamento da escrita são os de uso diário.
+
 ## Lacunas abertas
 
 | ID | Pergunta | Impacto | Decisão provisória |

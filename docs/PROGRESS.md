@@ -43,10 +43,14 @@ Capturas da verificação em browser (não versionadas): `tmp/shots/`.
 - Consulta de DOI (Crossref), IA/OCR e alojamento: dependências externas não configuradas (não bloqueiam o restante).
 - Regulamento institucional não fornecido (afeta a exportação académica DOCX/PDF).
 
-## Próxima tarefa executável
+## Próxima tarefa executável (ordem do autor, D-018)
 
-0. **Autor:** seguir `docs/DEPLOY.md` no telemóvel para pôr o VRBAN online; enviar os logs se o build falhar.
-1. **Próximo parágrafo, notas/conceitos e ficha de leitura** (VRB-012-*, VRB-022-002): cartões ideia → pesquisa → leitura → notas → redação → revisão → integrado, ligados a fontes e excertos; interface da ficha de leitura; matriz da literatura.
-2. Perfil institucional (VRB-003-*) aplicado à exportação DOCX/PDF e à auditoria (campos obrigatórios configuráveis).
-3. Memória do projeto (VRB-052-*) com o contexto relatado da secção 52 inserido **apenas após confirmação do autor**.
-4. Importação Excel/CSV com lotes anuláveis (VRB-039-*); tabelas/figuras e gráficos (VRB-021-002, VRB-035-*) — ativará a verificação “tabela/figura sem menção”; cenários (VRB-032-*); backups ensaiados (VRB-044-004); ESLint (D-012).
+0. Código protegido: tag `v0.1.0` e PR para `main`.
+1. **Autor:** seguir `docs/DEPLOY.md` e usar o Render **como ambiente de trabalho/teste**; sem dados insubstituíveis até existir backup (manter originais fora do sistema e exportar com regularidade).
+2. **Próximo parágrafo** (VRB-012-001): cartões ideia → fonte → leitura → notas → parágrafo → revisão → integrado, ligados a fontes, excertos e secções.
+3. Notas/conceitos (VRB-022-002), ficha de leitura (VRB-012-003) e matriz da literatura (VRB-012-004).
+4. Perfil institucional (VRB-003-*) assim que houver regulamento/modelo oficial.
+5. Backup completo descarregável e restauro ensaiado (VRB-044-004) — essencial antes de dados reais.
+6. Importação Excel/CSV (VRB-039-*), tabelas/figuras/gráficos (VRB-021-002, VRB-035-*).
+7. Cenários/VAL/TIR (VRB-032-*), câmbio (L-003) — quando houver dados.
+8. OCR, IA, galeria, DOI automático; memória do projeto (VRB-052-*, só com confirmação do autor); ESLint (D-012).
