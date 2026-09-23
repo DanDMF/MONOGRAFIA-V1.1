@@ -1,0 +1,63 @@
+{
+  "name": "vrban-centro-investigacao",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VRBAN — Centro Integrado de Investigação: monografia interativa, bibliografia APA 7, dados experimentais, análise económica e exportações.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web,worker \"npm:dev:api\" \"npm:dev:web\" \"npm:dev:worker\"",
+    "dev:api": "tsx watch src/server/index.ts",
+    "dev:web": "vite",
+    "dev:worker": "tsx watch src/server/worker.ts",
+    "build": "vite build && tsc -p tsconfig.server.json",
+    "start": "node dist/server/server/index.js",
+    "start:worker": "node dist/server/server/worker.js",
+    "db:migrate": "tsx src/server/db/migrate-cli.ts",
+    "author:provision": "tsx src/server/scripts/provision-author.ts",
+    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.client.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "docs:dictionary": "tsx scripts/gen-data-dictionary.ts",
+    "verify:xlsx": "python3 scripts/verify_xlsx.py",
+    "e2e": "node scripts/e2e-browser.mjs",
+    "check": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.2",
+    "@fastify/multipart": "^10.1.2",
+    "@fastify/rate-limit": "^11.2.0",
+    "@fastify/static": "^10.1.4",
+    "@node-rs/argon2": "^2.2.1",
+    "@tiptap/core": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
+    "citeproc": "^2.4.63",
+    "decimal.js": "^10.6.0",
+    "docx": "^9.7.1",
+    "exceljs": "^4.4.0",
+    "fastify": "^5.12.5",
+    "pg": "^8.23.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "concurrently": "^10.0.5",
+    "jszip": "^3.10.2",
+    "playwright": "^1.63.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  }
+}
