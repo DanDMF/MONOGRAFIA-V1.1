@@ -121,7 +121,7 @@ Fonte: `docs/VRBAN_SPEC.md` (protocolo A–H e secções 1–65). Um requisito p
 
 | ID | Requisito | Fase | Estado | Evidência |
 |---|---|---|---|---|
-| VRB-012-001 | Cartão “Próximo parágrafo” e fluxo ideia→integrado | F1 | Verificado | Migração 0007; `tests/paragraph-cards.test.ts` (13); e2e browser (cartão → parágrafo integrado com citação e localização; telemóvel 390 px) |
+| VRB-012-001 | Cartão “Próximo parágrafo” e fluxo ideia→integrado | F1 | Verificado | Migrações 0007–0008; `tests/paragraph-cards.test.ts` (15); e2e browser (unidade → parágrafo integrado com citação e localização, arquivada como evidência; telemóvel 390 px); D-019 |
 | VRB-012-002 | Excerto literal, paráfrase e comentário separados | F2 | Implementado | `excerpt.kind`; página Excertos; detalhe da fonte |
 | VRB-012-003 | Ficha de leitura completa | F2 | Parcial | Tabela `reading_note`; interface pendente |
 | VRB-012-004 | Matriz da literatura com diferenças de base explícitas | F2 | Pendente | — |

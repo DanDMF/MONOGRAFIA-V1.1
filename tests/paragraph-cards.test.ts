@@ -1,4 +1,5 @@
-// Próximo parágrafo (VRB-012-001): cartão ideia → … → integrado, pela API com PostgreSQL real.
+// Próximo parágrafo (VRB-012-001): unidade de investigação ideia → … → integrada (e arquivada como evidência),
+// pela API com PostgreSQL real.
 // Fixtures didáticas (obras fictícias), nunca dados do projeto real.
 import crypto from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -78,7 +79,7 @@ describe("regras partilhadas", () => {
   });
 });
 
-describe("percurso do cartão", () => {
+describe("percurso da unidade de investigação", () => {
   it("cria um cartão a partir de uma ideia", async () => {
     const c = await author.json("POST", `${P()}/cards`, { idea: "A iluminação LED domina o custo energético" });
     expect(c.stage).toBe("idea");
@@ -162,7 +163,7 @@ describe("percurso do cartão", () => {
       [refB, "3.2"],
     ]);
     const revs = await author.json("GET", `${P()}/sections/${sectionId}/revisions`);
-    expect(revs[0].note).toMatch(/Integração do cartão/);
+    expect(revs[0].note).toMatch(/Integração da unidade/);
     expect(revs[0].id).toBe(res.card.integrated_revision_id);
 
     const rendered = await author.json("GET", `${P()}/citations/rendered`);
@@ -173,11 +174,37 @@ describe("percurso do cartão", () => {
     expect((await author.req("POST", `${P()}/cards/${cardId}/integrate`, { version })).statusCode).toBe(400);
     const d = await author.json("GET", `${P()}/dashboard`);
     expect(d.writing.card).toBeNull();
+    expect(d.writing.byStage).toEqual({ integrated: 1 });
   });
 
-  it("reabrir o cartão retira a marca de integração sem apagar o parágrafo", async () => {
+  it("a unidade integrada sai da lista de trabalho e fica no histórico como evidência", async () => {
+    const card = await author.json("GET", `${P()}/cards/${cardId}`);
+    expect(card.card.archived_at).not.toBeNull();
+    expect(await author.json("GET", `${P()}/cards`)).toHaveLength(0);
+    const hist = await author.json("GET", `${P()}/cards?scope=history`);
+    expect(hist.map((c: any) => [c.id, c.integrated_section_title, c.source_count, c.excerpt_count])).toEqual([[cardId, "Contextualização", 2, 1]]);
+    expect(await author.json("GET", `${P()}/cards?scope=archived`)).toHaveLength(0);
+    // evidência: não se edita nem se "restaura" diretamente; só se reabre
+    expect((await author.req("PATCH", `${P()}/cards/${cardId}`, { version, draft: "alterado" })).statusCode).toBe(400);
+    expect((await author.req("POST", `${P()}/cards/${cardId}/archive`, { archived: false })).statusCode).toBe(400);
+  });
+
+  it("depois de integrar, sugere a unidade seguinte", async () => {
+    const other = await author.json("POST", `${P()}/cards`, { idea: "Segunda ideia fictícia", section_id: sectionId });
+    const r1 = await author.json("PATCH", `${P()}/cards/${other.id}`, { version: other.version, draft: "Texto fictício." });
+    const third = await author.json("POST", `${P()}/cards`, { idea: "Terceira ideia fictícia" });
+    const res = await author.json("POST", `${P()}/cards/${other.id}/integrate`, { version: r1.card.version, cite: false });
+    expect(res.next.id).toBe(third.id);
+    expect(res.sectionTitle).toBe("Contextualização");
+    await author.json("POST", `${P()}/cards/${third.id}/archive`, { archived: true });
+    expect((await author.json("GET", `${P()}/cards?scope=archived`)).map((c: any) => c.id)).toEqual([third.id]);
+  });
+
+  it("reabrir a unidade retira a marca de integração e o arquivo, sem apagar o parágrafo", async () => {
     const r = await author.json("PATCH", `${P()}/cards/${cardId}`, { version, stage: "review" });
     expect(r.card.integrated_at).toBeNull();
+    expect(r.card.archived_at).toBeNull();
+    expect((await author.json("GET", `${P()}/cards`)).map((c: any) => c.id)).toEqual([cardId]);
     expect(r.card.integrated_section_id).toBe(sectionId);
     version = r.card.version;
     const s = await author.json("GET", `${P()}/sections/${sectionId}`);
@@ -195,7 +222,7 @@ describe("percurso do cartão", () => {
   it("arquiva, lista e regista o histórico", async () => {
     await author.json("POST", `${P()}/cards/${cardId}/archive`, { archived: true });
     expect(await author.json("GET", `${P()}/cards`)).toHaveLength(0);
-    expect(await author.json("GET", `${P()}/cards?archived=true`)).toHaveLength(1);
+    expect(await author.json("GET", `${P()}/cards?scope=archived`)).toHaveLength(2);
     const hist = await author.json("GET", `${P()}/audit?entityType=paragraph_card`);
     expect(hist.map((h: any) => h.action)).toEqual(expect.arrayContaining(["create", "update", "integrate", "archive"]));
   });

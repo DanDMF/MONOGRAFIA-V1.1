@@ -46,8 +46,8 @@ export function App() {
         <Route path="/app" element={<PrivateLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="escrita/estrutura" element={<StructurePage />} />
-          <Route path="escrita/cartoes" element={<CardsPage />} />
-          <Route path="escrita/cartoes/:id" element={<CardDetailPage />} />
+          <Route path="escrita/unidades" element={<CardsPage />} />
+          <Route path="escrita/unidades/:id" element={<CardDetailPage />} />
           <Route path="escrita/editor/:sectionId" element={<Suspense fallback={<Loading what="a abrir o editor" />}><EditorPage /></Suspense>} />
           <Route path="bibliografia" element={<LibraryPage />} />
           <Route path="bibliografia/importar" element={<ImportPage />} />
@@ -102,7 +102,7 @@ const NAV: { group: string; items: { to: string; label: string }[]; pending?: st
     group: "Escrita",
     items: [
       { to: "/app", label: "Painel" },
-      { to: "/app/escrita/cartoes", label: "Próximo parágrafo" },
+      { to: "/app/escrita/unidades", label: "Próximo parágrafo" },
       { to: "/app/escrita/estrutura", label: "Estrutura e editor" },
     ],
     pending: ["Notas e conceitos", "Revisão"],
@@ -190,7 +190,7 @@ function PrivateLayout() {
         </button>
         <strong>{project.name}</strong>
         <span className="spacer" />
-        <Link className="btn btn-small" to="/app/escrita/cartoes">
+        <Link className="btn btn-small" to="/app/escrita/unidades">
           + Ideia
         </Link>
         <Link className="btn btn-small" to="/app/dados/colheitas?novo=1">

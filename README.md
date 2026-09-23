@@ -63,7 +63,7 @@ Em `NODE_ENV=production` os cookies passam a `Secure` (usar HTTPS atrás de um p
 | Comando | O que verifica |
 |---|---|
 | `npm run typecheck` | TypeScript estrito (servidor e cliente) |
-| `npm test` | 107 testes: APA 7, cálculos, documento, percursos académico e analítico e exportação DOCX/PDF via API com PostgreSQL real (`TEST_DATABASE_URL`, **a base de testes é apagada e recriada**) |
+| `npm test` | 109 testes: APA 7, cálculos, documento, percursos académico e analítico e exportação DOCX/PDF via API com PostgreSQL real (`TEST_DATABASE_URL`, **a base de testes é apagada e recriada**) |
 | `npm run check` | typecheck + testes |
 | `npm run verify:xlsx -- ficheiro.xlsx` | Releitura independente (openpyxl) e recálculo das fórmulas no LibreOffice sem cache |
 | `CHROMIUM_PATH=… BASE=http://localhost:3000 EMAIL=… PASSWORD=… npm run e2e` | Percursos completos num browser real, telemóvel e teclado (cria dados de verificação no projeto indicado: usar uma base de desenvolvimento) |
@@ -76,7 +76,7 @@ Ainda não existe configuração ESLint (ver DECISIONS D-012).
 1. **Definições** (Gestão → Perfil e definições): título académico, autor (apelido/nome para “Como citar”), instituição, perfil de citação (pt-PT ou inglês).
 2. **Biblioteca**: “+ Nova fonte” ou “Importar” (BibTeX/RIS/CSL-JSON com pré-visualização). Duplicados são assinalados e fundidos com pré-visualização, preservando citações.
 3. **Guia APA e auditoria** (Bibliografia): regras resumidas com exemplos didáticos; a auditoria lista erros estruturais, informação incompleta e pontos de revisão humana, com ligação ao local e à regra; exceções podem ser justificadas.
-4. **Próximo parágrafo** (Escrita): uma ideia por cartão → pergunta e secção → fontes com página → excertos → interpretação → rascunho → “Integrar na secção” (acrescenta no fim, com citação, sem apagar nada).
+4. **Próximo parágrafo** (Escrita): cada ideia é uma unidade de investigação → pergunta e secção → fontes com página → excertos → interpretação → rascunho → “Integrar na secção” (acrescenta no fim, com citação, sem apagar nada). Integrada, a unidade é arquivada como evidência e o sistema mostra o próximo passo.
 5. **Estrutura e editor**: abrir uma secção; escrever; “Inserir citação” (parentética, narrativa, direta curta, em bloco, fonte secundária, comunicação pessoal) com pré-visualização APA. A gravação é automática e o estado indica quando o servidor confirmou. “Guardar versão” cria um marco; “Versões” compara e restaura sem apagar.
 5. **Experimento**: locais → estruturas (áreas de implantação e cultivo distintas) → culturas → ciclos → colheitas/consumos/trabalho/registos de campo. Campos vazios significam “não registado”.
 6. **Análise**: despesas → repartições por ciclo (soma ≤ 100%) → **Indicadores** (cada valor abre fórmula, dados usados e exclusões).

@@ -27,9 +27,24 @@ const app = await buildApp({ config, pool, storage, logger: true });
 await app.listen({ port: config.port, host: config.host });
 
 // Um único serviço: a fila de exportações corre no mesmo processo (RUN_WORKER_IN_PROCESS=true).
+let stopping = false;
+let worker: Promise<void> = Promise.resolve();
 if (process.env.RUN_WORKER_IN_PROCESS === "true") {
-  let stopping = false;
-  process.on("SIGTERM", () => (stopping = true));
   console.log("Fila de exportações ativa neste processo.");
-  void workerLoop(pool, jobHandlers({ pool, config, storage }), () => stopping);
+  worker = workerLoop(pool, jobHandlers({ pool, config, storage }), () => stopping);
 }
+
+// Paragem ordenada (reinícios do alojamento): deixa de aceitar pedidos, termina a tarefa em curso e fecha a base.
+// Uma tarefa interrompida à força volta à fila pela recuperação de órfãs.
+const shutdown = async (signal: string) => {
+  if (stopping) return;
+  stopping = true;
+  console.log(`${signal}: a terminar…`);
+  setTimeout(() => process.exit(1), 25_000).unref();
+  await app.close().catch(() => {});
+  await worker.catch(() => {});
+  await pool.end().catch(() => {});
+  process.exit(0);
+};
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));

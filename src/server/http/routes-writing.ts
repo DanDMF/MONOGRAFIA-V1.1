@@ -7,12 +7,12 @@ import { requireProject, type AppCtx } from "./context.js";
 
 const idParam = (req: { params: unknown }) => parse(uuid, (req.params as Record<string, string>).id);
 
-/** Próximo parágrafo (secção 12). */
+/** Próximo parágrafo (secção 12): unidades de investigação. */
 export function registerWritingRoutes(app: FastifyInstance, ctx: AppCtx) {
   app.get("/api/projects/:projectId/cards", async (req) => {
     const { projectId } = await requireProject(ctx, req, "read");
-    const { archived } = parse(z.object({ archived: z.enum(["true", "false"]).optional() }), req.query);
-    return listCards(ctx.pool, projectId, archived === "true");
+    const { scope } = parse(z.object({ scope: z.enum(["active", "history", "archived"]).default("active") }), req.query);
+    return listCards(ctx.pool, projectId, scope);
   });
   app.post("/api/projects/:projectId/cards", async (req, reply) => {
     const { projectId, user } = await requireProject(ctx, req, "write");

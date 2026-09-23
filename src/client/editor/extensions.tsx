@@ -154,8 +154,8 @@ export const Xref = Node.create({
 });
 
 /**
- * Ligação parágrafo ↔ cartão "Próximo parágrafo". O atributo é preservado ao gravar e não passa para
- * o parágrafo seguinte quando se prime Enter (o texto novo não veio do cartão).
+ * Ligação parágrafo ↔ unidade de investigação ("Próximo parágrafo"). O atributo é preservado ao gravar e não passa
+ * para o parágrafo seguinte quando se prime Enter (o texto novo não veio da unidade).
  */
 export const CardLink = Extension.create({
   name: "cardLink",
@@ -168,7 +168,7 @@ export const CardLink = Extension.create({
           keepOnSplit: false,
           parseHTML: (el) => el.getAttribute("data-card-id"),
           renderHTML: (attrs) =>
-            attrs.cardId ? { "data-card-id": attrs.cardId, class: "from-card", title: "Parágrafo integrado a partir de um cartão “Próximo parágrafo”" } : {},
+            attrs.cardId ? { "data-card-id": attrs.cardId, class: "from-card", title: "Parágrafo integrado a partir de uma unidade de investigação" } : {},
         },
       },
     },

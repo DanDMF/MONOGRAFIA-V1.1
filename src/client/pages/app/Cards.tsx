@@ -1,7 +1,7 @@
-// Próximo parágrafo (secção 12): quadro de cartões e ficha do cartão.
+// Próximo parágrafo (secção 12): unidades de investigação. O cartão é só a interface de cada unidade.
 // Fluxo: ideia → pesquisa → leitura → notas → redação → revisão → integrado.
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ApiError, get, patch, post } from "../../api";
 import { useProjectApi, useSession } from "../../session";
 import { Badge, ErrorAlert, Loading, PageHead, useAsync } from "../../components/ui";
@@ -27,6 +27,9 @@ interface CardSummary {
   stage: CardStage;
   section_id: string | null;
   section_title: string | null;
+  integrated_section_id: string | null;
+  integrated_section_title: string | null;
+  integrated_at: string | null;
   source_count: number;
   excerpt_count: number;
   next_action: string | null;
@@ -35,7 +38,7 @@ interface CardSummary {
   archived_at: string | null;
 }
 
-/** Formulário rápido “Nova ideia” (também usado no painel). */
+/** Formulário rápido “Nova ideia” (também usado no painel): cria uma unidade de investigação. */
 export function NewIdeaForm({ compact = false }: { compact?: boolean }) {
   const base = useProjectApi();
   const navigate = useNavigate();
@@ -51,7 +54,7 @@ export function NewIdeaForm({ compact = false }: { compact?: boolean }) {
         setBusy(true);
         setError(null);
         post<{ id: string }>(`${base}/cards`, { idea })
-          .then((c) => navigate(`/app/escrita/cartoes/${c.id}`))
+          .then((c) => navigate(`/app/escrita/unidades/${c.id}`))
           .catch((err) => setError((err as Error).message))
           .finally(() => setBusy(false));
       }}
@@ -67,71 +70,154 @@ export function NewIdeaForm({ compact = false }: { compact?: boolean }) {
         maxLength={2000}
         style={{ flex: 1, minWidth: 200 }}
       />
-      <button className="btn btn-primary" disabled={busy || !idea.trim()}>
-        Criar cartão
+      <button className="btn" disabled={busy || !idea.trim()}>
+        Criar unidade
       </button>
       <ErrorAlert error={error} />
     </form>
   );
 }
 
+export interface IntegratedNotice {
+  sectionId: string;
+  sectionTitle: string | null;
+  revisionNumber: number;
+  idea: string;
+}
+
+/**
+ * Próximo parágrafo: o centro é o próximo passo, não um quadro. As unidades em curso aparecem numa lista curta;
+ * as integradas ficam arquivadas como histórico/evidência, fora da vista de trabalho.
+ */
 export function CardsPage() {
   const base = useProjectApi();
   const { canWrite } = useSession();
-  const [showArchived, setShowArchived] = useState(false);
-  const list = useAsync(() => get<CardSummary[]>(`${base}/cards${showArchived ? "?archived=true" : ""}`), [base, showArchived]);
-  if (list.loading && !list.data) return <Loading />;
+  const location = useLocation();
+  const notice = (location.state as { integrated?: IntegratedNotice } | null)?.integrated ?? null;
+  const [view, setView] = useState<"active" | "history" | "archived">("active");
+  const list = useAsync(() => get<CardSummary[]>(`${base}/cards?scope=${view}`), [base, view]);
+  const counts = useAsync(() => get<{ writing: { byStage: Record<string, number> } }>(`${base}/dashboard`), [base]);
+  // Sem número enquanto a contagem não chega (um “0” provisório seria falso).
+  const integratedCount = counts.data ? (counts.data.writing.byStage.integrated ?? 0) : null;
   const cards = list.data ?? [];
   const today = new Date().toISOString().slice(0, 10);
+  const [next, ...rest] = view === "active" ? cards : [];
   return (
     <>
       <PageHead
         title="Próximo parágrafo"
-        intro="Cada cartão leva uma ideia até um parágrafo integrado na monografia: ideia → pesquisa → leitura → notas → redação → revisão → integrado. Um parágrafo por dia é progresso real."
+        intro="Cada unidade de investigação leva uma ideia até um parágrafo da monografia. Integrada, passa a histórico — e segue-se a próxima."
       />
       <ErrorAlert error={list.error} />
-      {canWrite && (
-        <section className="card" aria-label="Nova ideia">
-          <NewIdeaForm />
-        </section>
-      )}
-      <p className="row" style={{ marginTop: "0.75rem" }}>
-        <label className="row">
-          <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} /> Mostrar arquivados
-        </label>
-      </p>
-      {cards.length === 0 ? (
-        <p className="muted">Ainda não há cartões. Comece por escrever uma ideia acima.</p>
-      ) : (
-        <div className="board">
-          {CARD_STAGES.map((stage) => {
-            const inStage = cards.filter((c) => c.stage === stage);
-            return (
-              <details key={stage} className="board-col" open={stage !== "integrated" || inStage.length <= 3}>
-                <summary>
-                  <strong>{CARD_STAGE_LABEL[stage]}</strong> <span className="muted">({inStage.length})</span>
-                </summary>
-                {inStage.length === 0 && <p className="muted small">—</p>}
-                {inStage.map((c) => (
-                  <Link key={c.id} to={`/app/escrita/cartoes/${c.id}`} className="card card-link">
-                    <span className="card-idea">{c.idea}</span>
-                    <span className="muted small">
-                      {c.section_title ?? "sem secção"} · {c.source_count} fonte(s) · {c.excerpt_count} excerto(s)
-                    </span>
-                    {c.next_action && (
-                      <span className={`small ${c.next_action_date && c.next_action_date < today ? "text-warn" : ""}`}>
-                        → {c.next_action}
-                        {c.next_action_date ? ` (${fmtDate(c.next_action_date)})` : ""}
-                      </span>
-                    )}
-                    {c.archived_at && <Badge status="" label="Arquivado" />}
-                  </Link>
-                ))}
-              </details>
-            );
-          })}
+      {notice && (
+        <div className="alert ok" role="status">
+          Parágrafo integrado em <Link to={`/app/escrita/editor/${notice.sectionId}`}>{notice.sectionTitle ?? "secção"}</Link> (revisão {notice.revisionNumber}). A
+          unidade “{notice.idea}” foi arquivada como evidência.
         </div>
       )}
+      {view === "active" && (
+        <>
+          {list.loading && !list.data ? (
+            <Loading />
+          ) : next ? (
+            <section className="card next-step" aria-labelledby="next-step">
+              <p className="eyebrow" id="next-step">
+                Próximo passo
+              </p>
+              <h2 className="next-idea">{next.idea}</h2>
+              <p>
+                <Badge status={stageStatus(next.stage)} label={CARD_STAGE_LABEL[next.stage]} />{" "}
+                {next.next_action ? (
+                  <span className={next.next_action_date && next.next_action_date < today ? "text-warn" : ""}>
+                    → {next.next_action}
+                    {next.next_action_date ? ` (até ${fmtDate(next.next_action_date)})` : ""}
+                  </span>
+                ) : (
+                  <span className="muted">{CARD_STAGE_HINT[next.stage]}</span>
+                )}
+              </p>
+              <p className="muted small">
+                {next.section_title ?? "Secção por escolher"} · {next.source_count} fonte(s) · {next.excerpt_count} excerto(s)
+              </p>
+              <Link className="btn btn-primary" to={`/app/escrita/unidades/${next.id}`}>
+                Continuar
+              </Link>
+            </section>
+          ) : (
+            <section className="card next-step">
+              <p className="eyebrow">Próximo passo</p>
+              <p>Nenhuma unidade em curso. Escreva uma ideia para começar o parágrafo de hoje.</p>
+            </section>
+          )}
+          {canWrite && (
+            <section className="card" aria-label="Nova ideia">
+              <NewIdeaForm />
+            </section>
+          )}
+          {rest.length > 0 && (
+            <section className="card" aria-labelledby="em-curso">
+              <h2 id="em-curso">Também em curso ({rest.length})</h2>
+              <ul className="unit-list">
+                {rest.map((c) => (
+                  <li key={c.id}>
+                    <Link to={`/app/escrita/unidades/${c.id}`}>{c.idea}</Link> <Badge status={stageStatus(c.stage)} label={CARD_STAGE_LABEL[c.stage]} />
+                    {c.next_action_date && (
+                      <span className={`small ${c.next_action_date < today ? "text-warn" : "muted"}`}> · até {fmtDate(c.next_action_date)}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
+      )}
+      {view !== "active" && (
+        <section className="card" aria-labelledby="hist">
+          <h2 id="hist">{view === "history" ? "Histórico: unidades integradas" : "Arquivadas sem integrar"}</h2>
+          <p className="muted small">
+            {view === "history"
+              ? "Evidência do percurso de cada parágrafo: ideia, fontes, excertos, rascunho e revisão onde entrou. Só leitura."
+              : "Ideias postas de lado. Podem ser restauradas."}
+          </p>
+          {list.loading && !list.data ? (
+            <Loading />
+          ) : cards.length === 0 ? (
+            <p className="muted">Nada aqui.</p>
+          ) : (
+            <ul className="unit-list">
+              {cards.map((c) => (
+                <li key={c.id}>
+                  <Link to={`/app/escrita/unidades/${c.id}`}>{c.idea}</Link>
+                  <span className="muted small">
+                    {" "}
+                    ·{" "}
+                    {view === "history"
+                      ? `${c.integrated_section_title ?? "secção"}, ${fmtDateTime(c.integrated_at)} · ${c.source_count} fonte(s)`
+                      : `arquivada em ${fmtDateTime(c.archived_at)}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+      <p className="row small" style={{ marginTop: "0.75rem" }}>
+        {view !== "active" && (
+          <button className="btn btn-link" onClick={() => setView("active")}>
+            ← Voltar ao próximo passo
+          </button>
+        )}
+        {view !== "history" && (
+          <button className="btn btn-link" onClick={() => setView("history")}>
+            Histórico{integratedCount === null ? "" : ` (${integratedCount} integrada${integratedCount === 1 ? "" : "s"})`}
+          </button>
+        )}
+        {view !== "archived" && (
+          <button className="btn btn-link" onClick={() => setView("archived")}>
+            Arquivadas sem integrar
+          </button>
+        )}
+      </p>
     </>
   );
 }
@@ -311,7 +397,7 @@ export function CardDetailPage() {
 
   return (
     <>
-      <PageHead title={form.idea || "Cartão"} intro={<Link to="/app/escrita/cartoes">← Todos os cartões</Link>}>
+      <PageHead title={form.idea || "Unidade de investigação"} intro={<Link to="/app/escrita/unidades">← Próximo passo</Link>}>
         <span className={`save-state ${status}`} role="status" aria-live="polite">
           {status === "saved" ? "Gravado" : status === "saving" ? "A gravar…" : status === "dirty" ? "Alterações por gravar" : "Não gravado"}
         </span>
@@ -319,17 +405,17 @@ export function CardDetailPage() {
       <ErrorAlert error={error} />
       {conflict !== null && (
         <div className="alert warn" role="alert">
-          Este cartão foi alterado noutra sessão; as suas últimas alterações <strong>não</strong> foram gravadas por cima. O texto continua nos campos para o
+          Esta unidade foi alterada noutra sessão; as suas últimas alterações <strong>não</strong> foram gravadas por cima. O texto continua nos campos para o
           poder copiar.{" "}
           <button className="btn btn-small" onClick={() => void load()}>
             Carregar a versão do servidor
           </button>
         </div>
       )}
-      {c.archived_at && <div className="alert warn">Cartão arquivado (só leitura).</div>}
+      {c.archived_at && !integrated && <div className="alert warn">Unidade arquivada sem integrar (só leitura).</div>}
       {msg && <div className="alert ok">{msg}</div>}
 
-      <nav aria-label="Etapa do cartão" className="stepper">
+      <nav aria-label="Etapa da unidade" className="stepper">
         {CARD_STAGES.map((s, i) => (
           <button
             key={s}
@@ -357,9 +443,9 @@ export function CardDetailPage() {
       )}
       {integrated && (
         <div className="alert ok">
-          Integrado em {fmtDateTime(c.integrated_at)} na secção{" "}
+          Integrada em {fmtDateTime(c.integrated_at)} na secção{" "}
           <Link to={`/app/escrita/editor/${c.integrated_section_id}`}>{allSections.find((s) => s.id === c.integrated_section_id)?.title ?? "de destino"}</Link>. O
-          parágrafo continua ligado a este cartão e às fontes; reveja-o no editor.
+          parágrafo continua ligado a esta unidade e às fontes. A unidade está arquivada como evidência (só leitura); o texto revê-se no editor.
         </div>
       )}
 
@@ -490,9 +576,13 @@ export function CardDetailPage() {
               try {
                 if (timer.current) clearTimeout(timer.current);
                 if (status !== "saved") await save();
-                const r = await post<{ sectionId: string; revisionNumber: number }>(`${base}/cards/${id}/integrate`, { version: versionRef.current, cite });
-                await load();
-                setMsg(`Parágrafo integrado (revisão ${r.revisionNumber} da secção).`);
+                const r = await post<{ sectionId: string; sectionTitle: string | null; revisionNumber: number }>(`${base}/cards/${id}/integrate`, {
+                  version: versionRef.current,
+                  cite,
+                });
+                // A unidade passa a histórico: volta-se ao próximo passo.
+                const integrated: IntegratedNotice = { sectionId: r.sectionId, sectionTitle: r.sectionTitle, revisionNumber: r.revisionNumber, idea: form.idea };
+                navigate("/app/escrita/unidades", { state: { integrated } });
               } catch (e) {
                 setError((e as Error).message);
               }
@@ -503,21 +593,22 @@ export function CardDetailPage() {
 
       {canWrite && (
         <p className="row">
-          {integrated && !c.archived_at && (
+          {integrated ? (
             <button className="btn" onClick={() => update({ stage: "review" }, true)}>
               Reabrir para revisão
             </button>
+          ) : (
+            <button
+              className="btn"
+              onClick={() =>
+                void post(`${base}/cards/${id}/archive`, { archived: !c.archived_at })
+                  .then(() => (c.archived_at ? load() : navigate("/app/escrita/unidades")))
+                  .catch((e) => setError((e as Error).message))
+              }
+            >
+              {c.archived_at ? "Restaurar unidade" : "Arquivar sem integrar"}
+            </button>
           )}
-          <button
-            className="btn"
-            onClick={() =>
-              void post(`${base}/cards/${id}/archive`, { archived: !c.archived_at })
-                .then(() => (c.archived_at ? load() : navigate("/app/escrita/cartoes")))
-                .catch((e) => setError((e as Error).message))
-            }
-          >
-            {c.archived_at ? "Restaurar cartão" : "Arquivar cartão"}
-          </button>
         </p>
       )}
     </>
@@ -551,7 +642,7 @@ function IntegratePanel({
           </p>
           {hasSources && (
             <label className="row">
-              <input type="checkbox" checked={cite} onChange={(e) => setCite(e.target.checked)} /> Acrescentar uma citação parentética das fontes do cartão (com
+              <input type="checkbox" checked={cite} onChange={(e) => setCite(e.target.checked)} /> Acrescentar uma citação parentética das fontes da unidade (com
               localização) no fim do parágrafo
             </label>
           )}

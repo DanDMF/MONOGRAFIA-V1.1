@@ -1,4 +1,6 @@
-// Próximo parágrafo (secção 12 / VRB-012-001): cartões ideia → pesquisa → leitura → notas → redação → revisão → integrado.
+// Próximo parágrafo (secção 12 / VRB-012-001): unidades de investigação (o cartão é só a interface)
+// ideia → pesquisa → leitura → notas → redação → revisão → integrado.
+// Uma unidade integrada é arquivada como histórico/evidência: sai da lista de trabalho (D-019).
 // A integração acrescenta o rascunho à secção de destino como parágrafo(s) com o atributo cardId e, se pedido,
 // uma citação parentética das fontes do cartão (com localização). O cartão guarda a secção e a revisão.
 import crypto from "node:crypto";
@@ -78,7 +80,7 @@ async function assertSection(db: Queryable, projectId: string, id: string | null
 async function getRow(db: Queryable, projectId: string, id: string, lock = false): Promise<CardRow> {
   parse(uuid, id);
   const c = await one<CardRow>(db, `select * from paragraph_card where id = $1 and project_id = $2 ${lock ? "for update" : ""}`, [id, projectId]);
-  if (!c) throw notFound("Cartão");
+  if (!c) throw notFound("Unidade de investigação");
   return c;
 }
 
@@ -108,18 +110,33 @@ async function loadLinks(db: Queryable, cardId: string) {
   return { sources, excerpts };
 }
 
-export async function listCards(db: Queryable, projectId: string, includeArchived = false) {
-  const rows = await q<CardRow & { section_title: string | null; source_count: number; excerpt_count: number }>(
+const STAGE_ORDER_SQL = `case c.stage ${CARD_STAGES.map((st, i) => `when '${st}' then ${i}`).join(" ")} end`;
+/** Ordem de trabalho: ação com data mais próxima; depois a mais avançada; depois a mais recente. */
+const WORK_ORDER_SQL = `c.next_action_date nulls last, ${STAGE_ORDER_SQL} desc, c.updated_at desc`;
+
+export type CardScope = "active" | "history" | "archived";
+
+/**
+ * active: em curso (não arquivadas); history: integradas (evidência); archived: arquivadas sem integrar.
+ */
+export async function listCards(db: Queryable, projectId: string, scope: CardScope = "active") {
+  const where =
+    scope === "active"
+      ? "c.archived_at is null and c.stage <> 'integrated'"
+      : scope === "history"
+        ? "c.stage = 'integrated'"
+        : "c.archived_at is not null and c.stage <> 'integrated'";
+  const order = scope === "active" ? WORK_ORDER_SQL : scope === "history" ? "c.integrated_at desc" : "c.archived_at desc";
+  return q<CardRow & { section_title: string | null; integrated_section_title: string | null; source_count: number; excerpt_count: number }>(
     db,
-    `select c.*, s.title as section_title,
+    `select c.*, s.title as section_title, si.title as integrated_section_title,
             (select count(*) from paragraph_card_source x where x.card_id = c.id)::int as source_count,
             (select count(*) from paragraph_card_excerpt x where x.card_id = c.id)::int as excerpt_count
-       from paragraph_card c left join section s on s.id = c.section_id
-      where c.project_id = $1 ${includeArchived ? "" : "and c.archived_at is null"}
-      order by c.next_action_date nulls last, c.updated_at desc`,
+       from paragraph_card c left join section s on s.id = c.section_id left join section si on si.id = c.integrated_section_id
+      where c.project_id = $1 and ${where}
+      order by ${order}`,
     [projectId],
   );
-  return rows;
 }
 
 export async function getCard(db: Queryable, projectId: string, id: string) {
@@ -160,7 +177,7 @@ export async function updateCard(db: Queryable, projectId: string, userId: strin
   const { version, sources, excerpt_ids, ...data } = parse(updateSchema, body);
   const before = await getRow(db, projectId, id, true);
   if (before.version !== version) {
-    throw conflict("Este cartão foi alterado noutra sessão. As suas alterações não foram gravadas por cima.", {
+    throw conflict("Esta unidade foi alterada noutra sessão. As suas alterações não foram gravadas por cima.", {
       serverVersion: before.version,
       server: await getCard(db, projectId, id),
     });
@@ -168,21 +185,22 @@ export async function updateCard(db: Queryable, projectId: string, userId: strin
   await assertSection(db, projectId, data.section_id);
   const beforeLinks = await loadLinks(db, id);
   const cols = Object.keys(data).filter((k) => (data as Record<string, unknown>)[k] !== undefined);
-  // Reabrir um cartão integrado (mudar a etapa) retira a marca de integração; o parágrafo fica na secção.
+  // Reabrir uma unidade integrada (mudar a etapa) retira a marca de integração e o arquivo; o parágrafo fica na secção.
   const reopen = before.stage === "integrated" && data.stage !== undefined;
+  if (before.archived_at && !reopen) throw badRequest("Unidade arquivada: restaure-a (ou reabra-a) antes de a editar.");
   const row = await one<CardRow>(
     db,
     `update paragraph_card set ${cols.map((c, i) => `${c} = $${i + 3}`).join(", ")}${cols.length ? "," : ""}
-            ${reopen ? "integrated_at = null," : ""} version = version + 1, updated_at = now()
+            ${reopen ? "integrated_at = null, archived_at = null," : ""} version = version + 1, updated_at = now()
       where id = $1 and project_id = $2 returning *`,
     [id, projectId, ...cols.map((c) => (data as Record<string, unknown>)[c])],
   );
   if (sources) {
     const ids = sources.map((s) => s.reference_id);
-    if (new Set(ids).size !== ids.length) throw badRequest("A mesma fonte aparece duas vezes no cartão.");
+    if (new Set(ids).size !== ids.length) throw badRequest("A mesma fonte aparece duas vezes na unidade.");
     if (ids.length) {
       const found = await q(db, "select id from reference where project_id = $1 and id = any($2::uuid[])", [projectId, ids]);
-      if (found.length !== ids.length) throw badRequest("O cartão aponta para fontes que não existem neste projeto.");
+      if (found.length !== ids.length) throw badRequest("A unidade aponta para fontes que não existem neste projeto.");
     }
     await q(db, "delete from paragraph_card_source where card_id = $1", [id]);
     let p = 0;
@@ -199,7 +217,7 @@ export async function updateCard(db: Queryable, projectId: string, userId: strin
     const ids = [...new Set(excerpt_ids)];
     if (ids.length) {
       const found = await q(db, "select id from excerpt where project_id = $1 and id = any($2::uuid[])", [projectId, ids]);
-      if (found.length !== ids.length) throw badRequest("O cartão aponta para excertos que não existem neste projeto.");
+      if (found.length !== ids.length) throw badRequest("A unidade aponta para excertos que não existem neste projeto.");
     }
     await q(db, "delete from paragraph_card_excerpt where card_id = $1", [id]);
     let p = 0;
@@ -223,7 +241,8 @@ export async function updateCard(db: Queryable, projectId: string, userId: strin
 }
 
 export async function setCardArchived(db: Queryable, projectId: string, userId: string, id: string, archived: boolean) {
-  await getRow(db, projectId, id);
+  const c = await getRow(db, projectId, id);
+  if (!archived && c.stage === "integrated") throw badRequest("Uma unidade integrada é evidência: para voltar a trabalhá-la, reabra-a para revisão.");
   await q(db, `update paragraph_card set archived_at = ${archived ? "now()" : "null"}, version = version + 1, updated_at = now() where id = $1`, [id]);
   await audit(db, { projectId, userId, action: archived ? "archive" : "restore", entityType: "paragraph_card", entityId: id });
 }
@@ -281,9 +300,9 @@ export function draftToParagraphs(
 export async function integrateCard(db: Queryable, projectId: string, userId: string, id: string, body: unknown) {
   const { version, cite } = parse(integrateSchema, body);
   const card = await getRow(db, projectId, id, true);
-  if (card.version !== version) throw conflict("Este cartão foi alterado noutra sessão. Recarregue antes de integrar.");
-  if (card.archived_at) throw badRequest("Cartão arquivado.");
-  if (card.stage === "integrated") throw badRequest("Este cartão já foi integrado. Reabra-o para integrar novamente.");
+  if (card.version !== version) throw conflict("Esta unidade foi alterada noutra sessão. Recarregue antes de integrar.");
+  if (card.stage === "integrated") throw badRequest("Esta unidade já foi integrada. Reabra-a para integrar novamente.");
+  if (card.archived_at) throw badRequest("Unidade arquivada.");
   if (!card.draft?.trim()) throw badRequest("O rascunho está vazio: não há parágrafo para integrar.");
   if (!card.section_id) throw badRequest("Escolha a secção de destino antes de integrar.");
   const { sources } = await loadLinks(db, id);
@@ -301,12 +320,12 @@ export async function integrateCard(db: Queryable, projectId: string, userId: st
     baseVersion: current.section.version,
     doc: { type: "doc", content: [...content, ...paragraphs] },
     checkpoint: true,
-    note: `Integração do cartão “${card.idea.slice(0, 80)}”`,
+    note: `Integração da unidade “${card.idea.slice(0, 80)}”`,
   });
   const row = await one<CardRow>(
     db,
     `update paragraph_card set stage = 'integrated', integrated_section_id = $2, integrated_revision_id = $3,
-            integrated_at = now(), version = version + 1, updated_at = now()
+            integrated_at = now(), archived_at = now(), version = version + 1, updated_at = now()
       where id = $1 returning *`,
     [id, card.section_id, saved.revisionId],
   );
@@ -316,26 +335,34 @@ export async function integrateCard(db: Queryable, projectId: string, userId: st
     action: "integrate",
     entityType: "paragraph_card",
     entityId: id,
-    summary: `Integrado na secção (revisão ${saved.revisionNumber})`,
+    summary: `Integrada na secção (revisão ${saved.revisionNumber}) e arquivada como evidência`,
     before: card,
     after: row,
   });
-  return { card: row!, sectionId: card.section_id, revisionNumber: saved.revisionNumber, sectionVersion: saved.version };
+  const section = await one<{ title: string }>(db, "select title from section where id = $1", [card.section_id]);
+  return {
+    card: row!,
+    sectionId: card.section_id,
+    sectionTitle: section?.title ?? null,
+    revisionNumber: saved.revisionNumber,
+    sectionVersion: saved.version,
+    next: (await nextCard(db, projectId)).card,
+  };
 }
 
-/** Cartão sugerido para hoje: ação com data mais próxima; senão o mais avançado; senão o mais recente. */
+/** Unidade sugerida para hoje (mesma ordem de trabalho da lista) e contagens por etapa. */
 export async function nextCard(db: Queryable, projectId: string) {
-  const stageOrder = CARD_STAGES.map((s, i) => `when '${s}' then ${i}`).join(" ");
   const card = await one<CardRow & { section_title: string | null }>(
     db,
     `select c.*, s.title as section_title from paragraph_card c left join section s on s.id = c.section_id
       where c.project_id = $1 and c.archived_at is null and c.stage <> 'integrated'
-      order by c.next_action_date nulls last, case c.stage ${stageOrder} end desc, c.updated_at desc limit 1`,
+      order by ${WORK_ORDER_SQL} limit 1`,
     [projectId],
   );
   const byStage = await q<{ stage: string; n: number }>(
     db,
-    "select stage, count(*)::int as n from paragraph_card where project_id = $1 and archived_at is null group by stage",
+    `select stage, count(*)::int as n from paragraph_card
+      where project_id = $1 and (stage = 'integrated' or archived_at is null) group by stage`,
     [projectId],
   );
   return { card: card ?? null, byStage: Object.fromEntries(byStage.map((r) => [r.stage, r.n])) };

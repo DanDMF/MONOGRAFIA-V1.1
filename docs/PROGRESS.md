@@ -14,7 +14,7 @@
 
 - **Acesso:** login do autor provisionado; papel revisor só de leitura; CSRF; sessões seguras.
 - **Percurso académico (verificado):** biblioteca (criar/editar/importar/duplicados/fusão) → estrutura (modelo “Monografia empírica”, reordenar, renomear, subsecções, arquivar) → editor TipTap com autosave, conflitos, cópia local de emergência, versões/diff/restauro, citações APA (6 modalidades, localizadores, pré-visualização), referências cruzadas por ID → bibliografia automática → publicação por snapshot → site público (início, monografia com índice, referências, resultados, versões, “Como citar”, preferências de leitura).
-- **Próximo parágrafo (verificado, sessão 3):** cartões ideia → pesquisa → leitura → notas → redação → revisão → integrado; fontes com localização, excertos (literal/paráfrase/comentário separados visualmente), interpretação própria, rascunho, próxima ação com data; “o que falta” por etapa (orienta, não bloqueia); integração no fim da secção como marco de versão, com citação parentética das fontes e localizadores, sem alterar o texto existente; o parágrafo guarda o ID do cartão (preservado pelo editor); reabrir/arquivar; painel mostra o cartão sugerido para hoje e “+ Ideia”.
+- **Próximo parágrafo (verificado, sessão 3):** unidades de investigação (o cartão é só a interface; D-019) ideia → pesquisa → leitura → notas → redação → revisão → integrado; fontes com localização, excertos (literal/paráfrase/comentário separados visualmente), interpretação própria, rascunho, próxima ação com data; “o que falta” por etapa (orienta, não bloqueia); integração no fim da secção como marco de versão, com citação parentética das fontes e localizadores, sem alterar o texto existente; o parágrafo guarda o ID da unidade (preservado pelo editor). **Integrada ⇒ arquivada como evidência** e a página volta ao próximo passo (sem quadro de colunas); histórico e “arquivadas sem integrar” à parte; reabrir para revisão. Painel mostra a unidade sugerida para hoje e “+ Ideia”.
 - **Guia APA e auditoria académica (verificado, sessão 2):** 15 regras com origem/versão/data e exemplos didáticos gerados pelo motor; 17 verificações classificadas por gravidade, com exceções justificadas e revogáveis; aviso antes de publicar e no painel.
 - **Alojamento (preparado e verificado localmente, sessão 2):** `Dockerfile` + `render.yaml` + arranque sem terminal; guia só com telemóvel em `docs/DEPLOY.md`. **Ainda não publicado online**: depende de o autor criar a conta no Render.
 - **Documentos (verificado):** DOCX/PDF (perfil APA de estudante) a partir do rascunho ou de uma versão publicada; exportação BibTeX/RIS/CSL-JSON.
@@ -26,7 +26,9 @@
 | Verificação | Resultado |
 |---|---|
 | `npm run typecheck` | sem erros |
-| `npm test` | **107/107** (9 ficheiros: apa 23, calc 17, doc 7, académico 20, analítico 11, documento DOCX/PDF 4, auditoria/guia 8, alojamento 4, cartões 13) |
+| `npm test` | **109/109** (9 ficheiros: apa 23, calc 17, doc 7, académico 20, analítico 11, documento DOCX/PDF 4, auditoria/guia 8, alojamento 4, unidades de investigação 15) |
+| Browser (sessão 3) | `scripts/e2e-browser.mjs` completo numa base limpa, incluindo unidade → parágrafo integrado com citação “(Exemplo & Didático, 2024, p. 5)”, arquivo automático, regresso ao próximo passo, histórico e ficha no telemóvel (390 px) sem deslocamento horizontal |
+| Paragem ordenada (sessão 3) | `SIGTERM` com fila no processo: servidor terminou em < 3 s (antes não terminava) |
 | Contentor de produção (sessão 2) | `docker build` + arranque numa base vazia (migrações e conta automáticas), verificação completa em browser contra o contentor, PDF no contentor, ficheiros e conta preservados após reinício, pico ~340 MB |
 | Guia APA e auditoria no browser (sessão 2) | Chromium: guia com exemplos, auditoria, justificar e revogar exceção, telemóvel sem deslocamento horizontal, sem erros na consola |
 | `npm run build` | sem erros (editor num bloco separado de 426 kB) |

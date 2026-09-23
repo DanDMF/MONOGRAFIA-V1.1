@@ -4,7 +4,7 @@ import { useProjectApi, useSession } from "../../session";
 import { Badge, ErrorAlert, Loading, PageHead, useAsync } from "../../components/ui";
 import { SECTION_STATUS } from "../../../shared/templates";
 import { fmtDate, fmtDateTime, fmtNumber } from "../../format";
-import { CARD_STAGE_HINT, CARD_STAGE_LABEL, CARD_STAGES } from "../../../shared/cards";
+import { CARD_STAGE_HINT, CARD_STAGE_LABEL } from "../../../shared/cards";
 import { NewIdeaForm } from "./Cards";
 
 export function Dashboard() {
@@ -29,7 +29,7 @@ export function Dashboard() {
         {next ? (
           <>
             <p>
-              <Link to={`/app/escrita/cartoes/${next.id}`}>
+              <Link to={`/app/escrita/unidades/${next.id}`}>
                 <strong>{next.idea}</strong>
               </Link>{" "}
               <Badge status="earth" label={CARD_STAGE_LABEL[next.stage as keyof typeof CARD_STAGE_LABEL]} />
@@ -42,12 +42,13 @@ export function Dashboard() {
             </p>
           </>
         ) : (
-          <p className="muted">Nenhum cartão em curso. Escreva uma ideia para começar o parágrafo de hoje.</p>
+          <p className="muted">Nenhuma unidade de investigação em curso. Escreva uma ideia para começar o parágrafo de hoje.</p>
         )}
         {canWrite && <NewIdeaForm compact />}
         <p className="muted small">
-          <Link to="/app/escrita/cartoes">Todos os cartões</Link>:{" "}
-          {CARD_STAGES.map((s) => `${CARD_STAGE_LABEL[s]} ${writing?.byStage?.[s] ?? 0}`).join(" · ")}
+          <Link to="/app/escrita/unidades">Próximo parágrafo</Link>:{" "}
+          {Object.entries(writing?.byStage ?? {}).reduce((a, [k, v]) => a + (k === "integrated" ? 0 : Number(v)), 0)} em curso ·{" "}
+          {writing?.byStage?.integrated ?? 0} integrada(s)
         </p>
       </section>
       <div className="grid grid-3" style={{ marginTop: "1rem" }}>
